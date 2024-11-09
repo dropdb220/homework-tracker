@@ -36,7 +36,11 @@ export async function GET(request: Request, { params }: { params: { idx: string 
     }
     const user = await usersCollection.findOne({ id: question.user });
     client.close();
-    return new Response(JSON.stringify({ ...question, user: { id: question.user, firstName: user?.firstName, lastName: user?.lastName } }), { status: 200 });
+    return new Response(JSON.stringify({ ...question,
+        title: userData.lang == 1 ? (question.title_en ?? question.title) : question.title, title_ko: question.title,
+        question: userData.lang == 1 ? (question.question_en ?? question.question) : question.question, question_ko: question.question,
+        answer: userData.lang == 1 ? (question.answer_en ?? question.answer) : question.answer, answer_ko: question.answer,
+        user: { id: question.user, firstName: user?.firstName, lastName: user?.lastName } }), { status: 200 });
 }
 
 export async function PUT(request: Request, { params }: { params: { idx: string } }) {
@@ -77,7 +81,9 @@ export async function PUT(request: Request, { params }: { params: { idx: string 
     }
     const updateList = { $set: {} };
     if (data.title && typeof data.title === 'string') Object.assign(updateList.$set, { title: data.title });
+    if (data.title_en && typeof data.title_en === 'string') Object.assign(updateList.$set, { title_en: data.title_en });
     if (data.question && typeof data.question === 'string') Object.assign(updateList.$set, { question: data.question });
+    if (data.question_en && typeof data.question_en === 'string') Object.assign(updateList.$set, { question_en: data.question_en });
     if (data.public != null && typeof data.public === 'boolean') Object.assign(updateList.$set, { public: data.public });
     await questionsCollection.updateOne({ idx: Number(params.idx) }, updateList);
     client.close();
@@ -86,8 +92,8 @@ export async function PUT(request: Request, { params }: { params: { idx: string 
     answerers.forEach(async (answerer) => {
         answerer.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify([{
-                title: '질문 수정됨',
-                body: `${question.title}이(가) 수정되었습니다.`,
+                title: answerer.lang == 1 ? 'Question Edited' : '질문 수정됨',
+                body: answerer.lang == 1 ? `Question ${question.title_en ?? question.title} was edited just now.` : `${question.title}이(가) 수정되었습니다.`,
                 tag: question.idx.toString()
             }])).catch(() => { });
         });

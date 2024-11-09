@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 import { sendNotification, setVapidDetails } from "web-push";
-import { postType } from "@/app/types";
+import { postType, postTypeEn } from "@/app/types";
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +37,7 @@ export async function GET(request: Request, { params }: { params: { idx: string 
     }
     const user = await usersCollection.findOne({ id: post.author });
     client.close();
-    return new Response(JSON.stringify({ ...post, author: { id: post.author, firstName: user?.firstName, lastName: user?.lastName } }), { status: 200 });
+    return new Response(JSON.stringify({ ...post, title: userData.lang == 1 ? (post.title_en ?? post.title) : post.title, content: userData.lang == 1 ? (post.content_en ?? post.content) : post.content, title_ko: post.title, content_ko: post.content, author: { id: post.author, firstName: user?.firstName, lastName: user?.lastName } }), { status: 200 });
 }
 
 export async function PUT(request: Request, { params }: { params: { idx: string } }) {
@@ -78,7 +78,7 @@ export async function PUT(request: Request, { params }: { params: { idx: string 
     if (!data.title || data.type == null || !data.content) {
         return new Response(JSON.stringify({ code: 1, msg: '제목, 타입, 내용을 입력하세요.' }), { status: 400 });
     }
-    if (typeof data.title !== 'string' || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date'))) {
+    if (typeof data.title !== 'string' || (data.title_en != null && typeof data.title_en !== 'string') || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.content_en != null && typeof data.content_en !== 'string') || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date'))) {
         return new Response(JSON.stringify({ code: 1, msg: '제목, 내용은 문자열, 유형은 숫자, 마감 기한은 유효한 날짜여야 합니다.' }), { status: 400 });
     }
     if (data.type < 0 || data.type >= (postType as Array<string>).length - 1) {
@@ -89,14 +89,14 @@ export async function PUT(request: Request, { params }: { params: { idx: string 
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: '중요 공지는 관리자만 등록할 수 있습니다.' }), { status: 403 });
     }
-    await postsCollection.updateOne({ count: parseInt(params.idx) }, { $set: { title: data.title, type: data.type, content: data.content, deadline: data.deadline ? new Date(data.deadline) : null, author: userData.id, created: new Date() } });
+    await postsCollection.updateOne({ count: parseInt(params.idx) }, { $set: { title: data.title, title_en: data.title_en, type: data.type, content: data.content, content_en: data.content_en, deadline: data.deadline ? new Date(data.deadline) : null, author: userData.id, created: new Date() } });
     const userList = await usersCollection.find({ id: { $ne: userData.id } }).toArray();
     setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
     userList.forEach(user => {
         user.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify([{
-                title: `${postType[data.type]} 공지 수정됨`,
-                body: `${data.title}이(가) 수정되었습니다.`,
+                title: user.lang == 1 ? `${postTypeEn[data.type]} Announcement Edited` : `${postType[data.type]} 공지 수정됨`,
+                body: user.lang == 1 ? `${data.title_en ?? data.title} was edited just now.` : `${data.title}이(가) 수정되었습니다.`,
                 tag: params.idx
             }])).catch(() => { });
         });

@@ -45,8 +45,11 @@ function ImageModal({ src, children, className }: { src: string, children: React
 export default function WriteQuestion() {
     const router = useRouter();
 
-    const [title, setTitle] = useState('');
-    const [question, setQuestion] = useState('');
+    const [titleKo, setTitleKo] = useState('');
+    const [titleEn, setTitleEn] = useState('');
+    const [questionKo, setQuestionKo] = useState('');
+    const [questionEn, setQuestionEn] = useState('');
+    const [lang, setLang] = useState(0);
     const [isPublic, setIsPublic] = useState(true);
     const [errorMsg, setErrorMsg] = useState<string>('');
     const [preview, setPreview] = useState(false);
@@ -93,8 +96,9 @@ export default function WriteQuestion() {
     return (
         <>
             <div className="border-b-slate-400 border-b">
-                <input type="text" autoFocus id="title" placeholder="제목" className="border border-slate-400 text-4xl rounded-lg p-4 w-[100%] dark:bg-[#424242]" value={title} onChange={e => {
-                    setTitle(e.currentTarget.value);
+                <input type="text" autoFocus id="title" placeholder="제목" className="border border-slate-400 text-4xl rounded-lg p-4 w-[100%] dark:bg-[#424242]" value={lang == 1 ? titleEn : titleKo} onChange={e => {
+                    if (lang == 1) setTitleEn(e.currentTarget.value);
+                    else setTitleKo(e.currentTarget.value);
                 }} />
                 <br /><br />
                 <input type="checkbox" id="is_public" checked={isPublic} className="ml-0 mr-2 h-4 w-4" onChange={e => {
@@ -111,6 +115,10 @@ export default function WriteQuestion() {
                     setPreview(e.currentTarget.checked);
                 }} />
                 <label htmlFor="preview" className="ml-2">미리보기</label>
+                <br />
+                <label htmlFor="lang">언어: </label>
+                <input type="radio" name="lang" id="lang_ko"  className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(0); }} defaultChecked />한국어
+                <input type="radio" name="lang" id="lang_en"  className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(1); }} />English
                 <br />
                 {preview ?
                     <div className="border border-slate-400 rounded-lg p-4 dark:bg-[#424242]">
@@ -163,10 +171,11 @@ export default function WriteQuestion() {
                                 a: (link) => (
                                     <Link href={link.href || ""} rel="noopener noreferrer" target={(link.href || '').startsWith('#') ? '_top' : "_blank"}>{link.children}</Link>
                                 )
-                            }} className="prose dark:prose-invert">{question}</Markdown>
+                            }} className="prose dark:prose-invert">{lang == 1 ? questionEn : questionKo}</Markdown>
                     </div>
-                    : <textarea rows={30} className="resize-none w-full" value={question} onChange={e => {
-                        setQuestion(e.currentTarget.value);
+                    : <textarea rows={30} className="resize-none w-full" value={lang == 1 ? questionEn : questionKo} onChange={e => {
+                        if (lang == 1) setQuestionEn(e.currentTarget.value);
+                        else setQuestionKo(e.currentTarget.value);
                     }}></textarea>}
             </div>
             <br />
@@ -193,7 +202,8 @@ export default function WriteQuestion() {
                     e.target.value = '';
                     if (response.ok) {
                         response.json().then(data => {
-                            setQuestion(question + `${question === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
+                            setQuestionKo(questionKo + `${questionKo === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
+                            setQuestionEn(questionEn + `${questionEn === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[Enter file description](${data.path})`)
                         })
                     } else {
                         if (response.status === 413) {
@@ -206,11 +216,11 @@ export default function WriteQuestion() {
                     }
                 });
             }} />
-            <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={title === '' || question === '' || isOffline} onClick={e => {
+            <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={titleKo === '' || questionKo === '' || isOffline} onClick={e => {
                 e.preventDefault();
                 const target = e.currentTarget;
                 target.disabled = true;
-                if (!title || !question) return;
+                if (!titleKo || !questionKo) return;
                 fetch(`/api/question`, {
                     method: 'POST',
                     headers: {
@@ -218,8 +228,10 @@ export default function WriteQuestion() {
                         Authorization: account!.token!
                     },
                     body: JSON.stringify({
-                        title,
-                        question,
+                        title: titleKo,
+                        title_en: titleEn,
+                        question: questionKo,
+                        question_en: questionEn,
                         public: isPublic
                     })
                 }).then(response => {

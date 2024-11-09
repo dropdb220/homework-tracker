@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 import { sendNotification, setVapidDetails } from "web-push";
-import { postType } from "@/app/types";
+import { postType, postTypeEn } from "@/app/types";
 
 export const dynamic = 'force-dynamic';
 
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
         .concat(posts.filter(post => post.type > 0).filter(post => post.deadline == null).sort((a, b) => a.type - b.type));
     const currentExam = exams.filter(exam => new Date(exam.subjects.slice(-1)[0].date) as unknown as number > (new Date() as unknown as number) - 1000 * 60 * 60 * 24).sort((a, b) => (new Date(a.subjects[0].date) as unknown as number) - (new Date(b.subjects[0].date) as unknown as number))[0];
     const currentCsat = csat.filter(csat => new Date(csat.date) as unknown as number > (new Date() as unknown as number) - 1000 * 60 * 60 * 24).sort((a, b) => (new Date(a.date) as unknown as number) - (new Date(b.date) as unknown as number))[0];
-    return new Response(JSON.stringify({ posts: sortedPosts.map(x => { return { count: x.count, title: x.title, type: x.type, deadline: x.deadline }; }), exam: currentExam, csat: currentCsat }), { status: 200 });
+    return new Response(JSON.stringify({ posts: sortedPosts.map(x => { return { count: x.count, title: userData.lang == 1 ? (x.title_en ?? x.title) : x.title, type: x.type, deadline: x.deadline }; }), exam: currentExam, csat: currentCsat ? { ...currentCsat, type: userData.lang == 1 ? (currentCsat.type_en ?? currentCsat.type) : currentCsat.type } : null }), { status: 200 });
 }
 
 export async function POST(request: Request) {
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: '제목, 타입, 내용을 입력하세요.' }), { status: 400 });
     }
-    if (typeof data.title !== 'string' || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date'))) {
+    if (typeof data.title !== 'string' || (data.title_en != null && typeof data.title_en !== 'string') || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.content_en != null && typeof data.content_en !== 'string') || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date'))) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: '제목, 내용은 문자열, 유형은 숫자, 마감 기한은 유효한 날짜여야 합니다.' }), { status: 400 });
     }
@@ -98,14 +98,14 @@ export async function POST(request: Request) {
     }
     const postsCollection = db.collection('posts');
     const count = (await postsCollection.find().toArray()).map(x => x.count).reduce((a: number, b: number) => Math.max(a, b), 0) + 1;
-    await postsCollection.insertOne({ count, title: data.title, type: data.type, content: data.content, deadline: data.deadline ? new Date(data.deadline) : null, author: userData.id, created: new Date() });
+    await postsCollection.insertOne({ count, title: data.title, title_en: data.title_en, type: data.type, content: data.content, content_en: data.content_en, deadline: data.deadline ? new Date(data.deadline) : null, author: userData.id, created: new Date() });
     const userList = await usersCollection.find({ id: { $ne: userData.id } }).toArray();
     setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
     userList.forEach(user => {
         user.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify([{
-                title: `${postType[data.type]} 공지 등록됨`,
-                body: `${data.title}이(가) 등록되었습니다.`,
+                title: user.lang == 1 ? `${postTypeEn[data.type]} Announcement Posted` : `${postType[data.type]} 공지 등록됨`,
+                body: user.lang == 1 ? `${data.title_en ?? data.title} was posted just now.` : `${data.title}이(가) 등록되었습니다.`,
                 tag: count.toString()
             }])).catch(() => { })
         });

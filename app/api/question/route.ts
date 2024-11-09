@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         return new Response(JSON.stringify({ code: 1, msg: '승인 대기 중입니다.' }), { status: 403 });
     }
     const questionsCollection = db.collection('questions');
-    const questions = ((userData.answerer || userData.perm === 0) ? (await questionsCollection.find().toArray()) : (await questionsCollection.find({ "$or": [{ user }, { public: true }] }).toArray())).sort((a, b) => b.created.getTime() - a.created.getTime());
+    const questions = ((userData.answerer || userData.perm === 0) ? (await questionsCollection.find().toArray()) : (await questionsCollection.find({ "$or": [{ user }, { public: true }] }).toArray())).sort((a, b) => b.created.getTime() - a.created.getTime()).map((x: any) => { return { ...x, title: userData.lang == 1 ? (x.title_en ?? x.title) : x.title } })
     client.close();
     return new Response(JSON.stringify({ questions }), { status: 200 });
 }
@@ -69,8 +69,10 @@ export async function POST(request: Request) {
         idx: prevQuestions.length === 0 ? 1 : prevQuestions.sort((a, b) => b.idx - a.idx)[0].idx + 1,
         user,
         title: data.title,
+        title_en: data.title_en,
         public: data.public,
         question: data.question,
+        question_en: data.question_en,
         solved: false,
         created: new Date()
     };
@@ -81,8 +83,8 @@ export async function POST(request: Request) {
     answerers.forEach(async (answerer) => {
         answerer.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify([{
-                title: '질문 등록됨',
-                body: `${question.title}이(가) 등록되었습니다.`,
+                title: answerer.lang == 1 ? 'New Question' : '질문 등록됨',
+                body: answerer.lang == 1 ? `A new question ${question.title_en ?? question.title} was posted just now.` : `${question.title}이(가) 등록되었습니다.`,
                 tag: question.idx.toString()
             }])).catch(() => { });
         });

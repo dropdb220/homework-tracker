@@ -19,6 +19,7 @@ export default function MyAccountEditpage() {
     const [isAccepted, setIsAccepted] = useState(false);
     const [allergy, setAllergy] = useState<Array<number>>([]);
     const [answerer, setAnswerer] = useState(false);
+    const [lang, setLang] = useState(0);
     const [saveState, setSaveState] = useState('');
     const [saveErrorMsg, setSaveErrorMsg] = useState('');
     const [isOffline, setIsOffline] = useState(false);
@@ -40,6 +41,7 @@ export default function MyAccountEditpage() {
                     setIsAccepted(data.accepted || false);
                     setAllergy(data.allergy || []);
                     setAnswerer(data.answerer || false);
+                    setLang(data.lang);
                 } else {
                     setAccount(null);
                     router.replace('/login/id');
@@ -263,6 +265,35 @@ export default function MyAccountEditpage() {
                             <br />
                         </>
                     }
+                    <label htmlFor="lang">언어</label>
+                    <br />
+                    <select value={lang} id="lang" className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-[100%] dark:bg-[#424242]" onChange={e => {
+                        setLang(parseInt(e.currentTarget.value));
+                        setSaveState('저장 중');
+                        fetch('/api/account', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', Authorization: account!.token! },
+                            body: JSON.stringify({
+                                id: account?.id,
+                                lang: parseInt(e.currentTarget.value)
+                            })
+                        }).then(async res => {
+                            if (res.ok) {
+                                setSaveState('저장됨');
+                            } else {
+                                setSaveState('저장 실패');
+                                setSaveErrorMsg((await res.json()).msg);
+                            }
+                        }).catch(() => {
+                            setSaveState('저장 실패');
+                            setSaveErrorMsg('오프라인 상태');
+                        });
+                    }}>
+                        <option value={0}>한국어</option>
+                        <option value={1}>English</option>
+                    </select>
+                    <br />
+                    <br />
                     <span>알러지 정보</span>
                     <br />
                     {

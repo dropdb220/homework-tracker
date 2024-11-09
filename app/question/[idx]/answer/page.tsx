@@ -46,7 +46,9 @@ export default function WriteAnswer({ params }: { params: { idx: string } }) {
     const router = useRouter();
 
     const [title, setTitle] = useState('');
-    const [answer, setAnswer] = useState('');
+    const [answerKo, setAnswerKo] = useState('');
+    const [answerEn, setAnswerEn] = useState('');
+    const [lang, setLang] = useState(0);
     const [errorMsg, setErrorMsg] = useState<string>('');
     const [preview, setPreview] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -129,6 +131,10 @@ export default function WriteAnswer({ params }: { params: { idx: string } }) {
                 }} />
                 <label htmlFor="preview" className="ml-2">미리보기</label>
                 <br />
+                <label htmlFor="lang">언어: </label>
+                <input type="radio" name="lang" id="lang_ko"  className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(0); }} defaultChecked />한국어
+                <input type="radio" name="lang" id="lang_en"  className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(1); }} />English
+                <br />
                 {preview ?
                     <div className="border border-slate-400 rounded-lg p-4 dark:bg-[#424242]">
                         <Markdown
@@ -180,10 +186,11 @@ export default function WriteAnswer({ params }: { params: { idx: string } }) {
                                 a: (link) => (
                                     <Link href={link.href || ""} rel="noopener noreferrer" target={(link.href || '').startsWith('#') ? '_top' : "_blank"}>{link.children}</Link>
                                 )
-                            }} className="prose dark:prose-invert">{answer}</Markdown>
+                            }} className="prose dark:prose-invert">{lang == 1 ? answerEn : answerKo}</Markdown>
                     </div>
-                    : <textarea rows={30} className="resize-none w-full" value={answer} onChange={e => {
-                        setAnswer(e.currentTarget.value);
+                    : <textarea rows={30} className="resize-none w-full" value={lang == 1 ? answerEn : answerKo} onChange={e => {
+                        if (lang == 1) setAnswerEn(e.currentTarget.value);
+                        else setAnswerKo(e.currentTarget.value);
                     }}></textarea>}
             </div>
             <br />
@@ -210,7 +217,8 @@ export default function WriteAnswer({ params }: { params: { idx: string } }) {
                     e.target.value = '';
                     if (response.ok) {
                         response.json().then(data => {
-                            setAnswer(answer + `${answer === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
+                            setAnswerKo(answerKo + `${answerKo === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
+                            setAnswerEn(answerEn + `${answerEn === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[Enter file description](${data.path})`)
                         })
                     } else {
                         if (response.status === 413) {
@@ -223,11 +231,11 @@ export default function WriteAnswer({ params }: { params: { idx: string } }) {
                     }
                 });
             }} />
-            <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={title === '' || answer === '' || isOffline} onClick={e => {
+            <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={title === '' || answerKo === '' || isOffline} onClick={e => {
                 e.preventDefault();
                 const target = e.currentTarget;
                 target.disabled = true;
-                if (!title || !answer) return;
+                if (!title || !answerKo) return;
                 fetch(`/api/question/${params.idx}/answer`, {
                     method: 'POST',
                     headers: {
@@ -235,7 +243,8 @@ export default function WriteAnswer({ params }: { params: { idx: string } }) {
                         Authorization: account!.token!
                     },
                     body: JSON.stringify({
-                        answer: answer,
+                        answer: answerKo,
+                        answer_en: answerEn
                     })
                 }).then(response => {
                     if (response.ok) router.push(`/question/${params.idx}`);

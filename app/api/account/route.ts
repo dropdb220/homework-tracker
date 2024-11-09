@@ -27,7 +27,8 @@ export async function GET(request: Request) {
                 perm: user.perm,
                 accepted: user.accepted,
                 allergy: user.allergy,
-                answerer: user.answerer
+                answerer: user.answerer,
+                lang: user.lang
             }
         }), { status: 200 });
     }
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: '이미 존재하는 ID입니다.' }), { status: 400 });
     }
-    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], answerer: false });
+    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], answerer: false, lang: 0 });
     let token = '';
     for (let i = 0; i < 64; i++) {
         token += Math.floor(Math.random() * 16).toString(16);
@@ -79,8 +80,8 @@ export async function POST(request: Request) {
     userList.forEach(user => {
         user.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify([{
-                title: `계정 생성됨`,
-                body: `${id} 계정이 생성되었습니다.`,
+                title: user.lang == 1 ? 'Account Created' : `계정 생성됨`,
+                body: user.lang == 1 ? `A new account with ID ${id} was created just now.` : `${id} 계정이 생성되었습니다.`,
                 tag: id
             }])).catch(() => { });
         });
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-    const { id, pwd, firstName, lastName, perm, accepted, allergy, answerer } = await request.json();
+    const { id, pwd, firstName, lastName, perm, accepted, allergy, answerer, lang } = await request.json();
     const token = request.headers.get('Authorization');
     if (!token) {
         return new Response(JSON.stringify({ code: 1, msg: '로그인이 필요합니다.' }), { status: 401 });
@@ -193,6 +194,9 @@ export async function PUT(request: Request) {
         }
         if (answerer != null && typeof answerer === 'boolean') {
             Object.assign(updateList.$set, { answerer });
+        }
+        if (lang != null && typeof lang === 'number') {
+            Object.assign(updateList.$set, { lang });
         }
         await usersCollection.updateOne({ id }, updateList);
         client.close();

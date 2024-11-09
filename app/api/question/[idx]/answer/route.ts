@@ -39,14 +39,14 @@ export async function POST(request: Request, { params }: { params: { idx: string
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: '지정된 답변자만 답변할 수 있습니다.' }), { status: 403 });
     }
-    await questionsCollection.updateOne({ idx: Number(params.idx) }, { $set: { answer: data.answer, solved: true } });
+    await questionsCollection.updateOne({ idx: Number(params.idx) }, { $set: { answer: data.answer, answer_en: data.answer_en, solved: true } });
     client.close();
     setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
     const user = await usersCollection.findOne({ id: question.user });
     if (user) user.subscriptions.forEach(async (sub: any) => {
         sendNotification(sub, JSON.stringify([{
-            title: '답변 등록됨',
-            body: `${question.title}에 답변이 등록되었습니다.`,
+            title: user.lang == 1 ? 'Question answered' : '답변 등록됨',
+            body: user.lang == 1 ? `Your question ${question.title_en ?? question.title} was answered just now.` : `${question.title}에 답변이 등록되었습니다.`,
             tag: question.idx.toString()
         }])).catch(() => { });
     });
@@ -89,14 +89,14 @@ export async function PUT(request: Request, { params }: { params: { idx: string 
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: '지정된 답변자만 답변을 수정할 수 있습니다.' }), { status: 403 });
     }
-    await questionsCollection.updateOne({ idx: Number(params.idx) }, { $set: { answer: data.answer } });
+    await questionsCollection.updateOne({ idx: Number(params.idx) }, { $set: { answer: data.answer, answer_en: data.answer_en } });
     client.close();
     setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
     const user = await usersCollection.findOne({ id: question.user });
     if (user) user.subscriptions.forEach(async (sub: any) => {
         sendNotification(sub, JSON.stringify([{
-            title: '답변 수정됨',
-            body: `${question.title}에 대한 답변이 등록되었습니다.`,
+            title: user.lang == 1 ? 'Answer Edited' : '답변 수정됨',
+            body: user.lang == 1 ? `The answer to your question ${question.title_en || question.title} was edited just now.` : `${question.title}에 대한 답변이 수정되었습니다.`,
             tag: question.idx.toString()
         }])).catch(() => { });
     });

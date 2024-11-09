@@ -19,6 +19,11 @@ export enum Perm {
     user = 2
 }
 
+export enum Lang {
+    ko = 0,
+    en = 1
+}
+
 export type AccountInfo = {
     id: string;
     firstName: string;
@@ -26,13 +31,18 @@ export type AccountInfo = {
     perm: Perm;
     accepted: boolean;
     answerer: boolean;
+    lang: Lang;
 }
 
 export const permToString = ['root', 'admin', 'user', ''];
 
+export const langToString = ['한국어', 'English', ''];
+
 export const postType: { [index: number]: string } = ['중요', '지필평가', '수행평가', '숙제', '기타', ''];
+export const postTypeEn: { [index: number]: string } = ['Important', 'Exam', 'Performance', 'Homework', 'Other', ''];
 
 export const deadlineName: { [index: number]: string } = ['기한', '날짜', '날짜', '마감 기한', '날짜/기한', ''];
+export const deadlineNameEn: { [index: number]: string } = ['Deadline', 'Date', 'Date', 'Deadline', 'Date(Deadline)', ''];
 
 export type Passkey = {
     // SQL: Encode to base64url then store as `TEXT`. Index this column

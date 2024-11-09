@@ -11,7 +11,7 @@ import { materialDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import Image from "next/image";
 import Link from "next/link";
 
-import { deadlineName, postType, LSAccount } from "@/app/types";
+import { deadlineName, deadlineNameEn, postType, postTypeEn, LSAccount } from "@/app/types";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -53,11 +53,14 @@ function ImageModal({ src, children, className }: { src: string, children: React
 export default function UpdatePost({ params }: { params: { idx: string } }) {
     const router = useRouter();
 
-    const [title, setTitle] = useState('');
+    const [titleKo, setTitleKo] = useState('');
+    const [titleEn, setTitleEn] = useState('');
     const [type, setType] = useState('0');
     const [hasDeadline, setHasDeadline] = useState(false);
     const [deadline, setDeadline] = useState('');
-    const [content, setContent] = useState('');
+    const [contentKo, setContentKo] = useState('');
+    const [contentEn, setContentEn] = useState('');
+    const [lang, setLang] = useState(0);
     const [errorMsg, setErrorMsg] = useState<string>('');
     const [preview, setPreview] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -77,11 +80,13 @@ export default function UpdatePost({ params }: { params: { idx: string } }) {
                 router.replace('/');
             } else {
                 response.json().then(data => {
-                    setTitle(data.title);
+                    setTitleKo(data.title_ko);
+                    setTitleEn(data.title_en);
                     setType(data.type.toString());
                     setHasDeadline(data.deadline !== null);
                     setDeadline(data.deadline ? new Date(new Date(data.deadline).setHours(9, 0, 0, 0)).toISOString().split('T')[0] : '');
-                    setContent(data.content);
+                    setContentKo(data.content_ko);
+                    setContentEn(data.content_en);
                 });
             }
         }).catch(() => {
@@ -111,8 +116,9 @@ export default function UpdatePost({ params }: { params: { idx: string } }) {
     return (
         <>
             <div className="border-b-slate-400 border-b">
-                <input type="text" autoFocus id="title" placeholder="제목" className="border border-slate-400 text-4xl rounded-lg p-4 w-[100%] dark:bg-[#424242]" value={title} onChange={e => {
-                    setTitle(e.currentTarget.value);
+                <input type="text" autoFocus id="title" placeholder="제목" className="border border-slate-400 text-4xl rounded-lg p-4 w-[100%] dark:bg-[#424242]" value={lang == 1 ? titleEn : titleKo} onChange={e => {
+                    if (lang == 1) setTitleEn(e.currentTarget.value);
+                    else setTitleKo(e.currentTarget.value);
                 }} />
                 <br /><br />
                 <label htmlFor="type">유형:</label>
@@ -120,8 +126,8 @@ export default function UpdatePost({ params }: { params: { idx: string } }) {
                     setType(e.currentTarget.value);
                 }}>
                     {
-                        Object.keys(postType).filter(key => postType[Number(key)] !== '').map((key) => {
-                            return <option key={key} value={key}>{postType[Number(key)]}</option>
+                        Object.keys(lang == 1 ? postTypeEn : postType).filter(key => (lang == 1 ? postTypeEn : postType)[Number(key)] !== '').map((key) => {
+                            return <option key={key} value={key}>{(lang == 1 ? postTypeEn : postType)[Number(key)]}</option>
                         })
                     }
                 </select>
@@ -143,6 +149,10 @@ export default function UpdatePost({ params }: { params: { idx: string } }) {
                     setPreview(e.currentTarget.checked);
                 }} />
                 <label htmlFor="preview" className="ml-2">미리보기</label>
+                <br />
+                <label htmlFor="lang">언어: </label>
+                <input type="radio" name="lang" id="lang_ko"  className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(0); }} defaultChecked />한국어
+                <input type="radio" name="lang" id="lang_en"  className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(1); }} />English
                 <br />
                 {preview ?
                     <div className="border border-slate-400 rounded-lg p-4 dark:bg-[#424242]">
@@ -195,10 +205,11 @@ export default function UpdatePost({ params }: { params: { idx: string } }) {
                                 a: (link) => (
                                     <Link href={link.href || ""} rel="noopener noreferrer" target={(link.href || '').startsWith('#') ? '_top' : "_blank"}>{link.children}</Link>
                                 )
-                            }} className="prose dark:prose-invert">{content}</Markdown>
+                            }} className="prose dark:prose-invert">{lang == 1 ? contentEn : contentKo}</Markdown>
                     </div>
-                    : <textarea rows={30} className="resize-none w-full" value={content} onChange={e => {
-                        setContent(e.currentTarget.value);
+                    : <textarea rows={30} className="resize-none w-full" value={lang == 1 ? contentEn : contentKo} onChange={e => {
+                        if (lang == 1) setContentEn(e.currentTarget.value);
+                        else setContentKo(e.currentTarget.value);
                     }}></textarea>}
             </div>
             <br />
@@ -225,7 +236,8 @@ export default function UpdatePost({ params }: { params: { idx: string } }) {
                     e.target.value = '';
                     if (response.ok) {
                         response.json().then(data => {
-                            setContent(content + `${content === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
+                            setContentKo(contentKo + `${contentKo === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
+                            setContentEn(contentEn + `${contentEn === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[Enter file description](${data.path})`)
                         })
                     } else {
                         if (response.status === 413) {
@@ -238,11 +250,11 @@ export default function UpdatePost({ params }: { params: { idx: string } }) {
                     }
                 });
             }} />
-            <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={title === '' || content === '' || (hasDeadline && deadline === '') || isOffline} onClick={e => {
+            <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={titleKo === '' || contentKo === '' || (hasDeadline && deadline === '') || isOffline} onClick={e => {
                 e.preventDefault();
                 const target = e.currentTarget;
                 target.disabled = true;
-                if (!title || !content) return;
+                if (!titleKo || !contentKo) return;
                 if (hasDeadline && deadline === '') return;
                 fetch(`/api/post/${params.idx}`, {
                     method: 'PUT',
@@ -251,10 +263,12 @@ export default function UpdatePost({ params }: { params: { idx: string } }) {
                         Authorization: account!.token!
                     },
                     body: JSON.stringify({
-                        title,
+                        title: titleKo,
+                        title_en: titleEn,
                         type: Number(type),
                         deadline: hasDeadline ? new Date(Number(deadline.split('-')[0]), Number(deadline.split('-')[1]) - 1, Number(deadline.split('-')[2])) : null,
-                        content
+                        content: contentKo,
+                        content_en: contentEn
                     })
                 }).then(response => {
                     if (response.ok) router.push(`/post/${params.idx}`);
