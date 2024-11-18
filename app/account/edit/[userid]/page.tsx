@@ -309,7 +309,7 @@ const OtherAccountEditpage: React.FC<{ params: { userid: string } }> = ({ params
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json', Authorization: account!.token! },
                                             body: JSON.stringify({
-                                                id: account?.id,
+                                                id: decodeURIComponent(params.userid),
                                                 allergy: allergy.filter(i => i !== idx + 1).concat(e.currentTarget.checked ? idx + 1 : [])
                                             })
                                         }).then(async res => {
