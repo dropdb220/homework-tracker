@@ -28,7 +28,9 @@ export async function GET(request: Request) {
                 accepted: user.accepted,
                 allergy: user.allergy,
                 answerer: user.answerer,
-                lang: user.lang
+                lang: user.lang,
+                discordConnected: user.discordConnected,
+                discordID: user.discordID
             }
         }), { status: 200 });
     }
@@ -68,7 +70,7 @@ export async function POST(request: Request) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: '이미 존재하는 ID입니다.' }), { status: 400 });
     }
-    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], answerer: false, lang: 0 });
+    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], answerer: false, lang: 0, discordConnected: false });
     let token = '';
     for (let i = 0; i < 64; i++) {
         token += Math.floor(Math.random() * 16).toString(16);

@@ -100,6 +100,11 @@ export default function Header() {
                                         };
                                         file.click();
                                     }}>PDF 잠금해제{isUnlockingPDF && ' 중...'}</button>
+                                    {process.env.NEXT_PUBLIC_DISCORD_INVITE != null &&
+                                        <a href={process.env.NEXT_PUBLIC_DISCORD_INVITE!}>
+                                            <button className="p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowUtilMenu(false); }}>Discord 서버</button>
+                                        </a>
+                                    }
                                 </div>
                             </>
                         }
@@ -144,6 +149,11 @@ export default function Header() {
                                     };
                                     file.click();
                                 }}>PDF 잠금해제{isUnlockingPDF && ' 중...'}</button>
+                                {process.env.NEXT_PUBLIC_DISCORD_INVITE != null &&
+                                    <a href={process.env.NEXT_PUBLIC_DISCORD_INVITE!}>
+                                        <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowUtilMenu(false); }}>Discord 서버</button>
+                                    </a>
+                                }
                                 <div className="md:hidden" />
                                 <Link href="/account" className="md:hidden w-full" onClick={e => { setShowMobileMenu(false); }}>
                                     <div className="grid grid-cols-[auto_1fr] mt-[-72px]">

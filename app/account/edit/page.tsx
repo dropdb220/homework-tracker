@@ -20,6 +20,8 @@ export default function MyAccountEditpage() {
     const [allergy, setAllergy] = useState<Array<number>>([]);
     const [answerer, setAnswerer] = useState(false);
     const [lang, setLang] = useState(0);
+    const [discordConnected, setDiscordConnected] = useState(false);
+    const [discordID, setDiscordID] = useState('');
     const [saveState, setSaveState] = useState('');
     const [saveErrorMsg, setSaveErrorMsg] = useState('');
     const [isOffline, setIsOffline] = useState(false);
@@ -42,6 +44,30 @@ export default function MyAccountEditpage() {
                     setAllergy(data.allergy || []);
                     setAnswerer(data.answerer || false);
                     setLang(data.lang);
+                    setDiscordConnected(data.discordConnected || false);
+                    setDiscordID(data.discordID || '');
+                    if (new URL(location.href).searchParams.has('code')) {
+                        fetch('/api/discord', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: account.token! },
+                            body: JSON.stringify({
+                                code: new URL(location.href).searchParams.get('code')
+                            })
+                        }).then(async res => {
+                            if (res.ok) {
+                                setDiscordConnected(true);
+                                setDiscordID((await res.json()).data.id);
+                                setSaveState('저장됨');
+                                router.replace('/account/edit');
+                            } else {
+                                setSaveState('저장 실패');
+                                setSaveErrorMsg((await res.json()).msg);
+                            }
+                        }).catch(() => {
+                            setSaveState('저장 실패');
+                            setSaveErrorMsg('오프라인 상태');
+                        });
+                    }
                 } else {
                     setAccount(null);
                     router.replace('/login/id');
@@ -143,7 +169,7 @@ export default function MyAccountEditpage() {
                     <label htmlFor="passkey">패스키</label>
                     <br />
                     <Link href="/register/passkey">
-                        <button className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">패스키 등록하기</button>
+                        <button id="passkey" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">패스키 등록하기</button>
                     </Link>
                     <br />
                     <br />
@@ -177,6 +203,45 @@ export default function MyAccountEditpage() {
                     }}>변경</button>
                     <br />
                     <br />
+                    {process.env.NEXT_PUBLIC_DISCORD_ENABLED == "1" &&
+                        <>
+                            <label htmlFor="discord">Discord 연동</label>
+                            <br />
+                            {discordConnected ? (
+                                <>
+                                    <span>연동됨: </span>
+                                    <span>{discordID}</span>
+                                    <br />
+                                    <button id="discord" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" onClick={() => {
+                                        setSaveState('저장 중');
+                                        fetch('/api/discord', {
+                                            method: 'DELETE',
+                                            headers: { 'Content-Type': 'application/json', Authorization: account!.token! }
+                                        }).then(async res => {
+                                            if (res.ok) {
+                                                setSaveState('저장됨');
+                                                setDiscordConnected(false);
+                                            } else {
+                                                setSaveState('저장 실패');
+                                                setSaveErrorMsg((await res.json()).msg);
+                                            }
+                                        }).catch(() => {
+                                            setSaveState('저장 실패');
+                                            setSaveErrorMsg('오프라인 상태');
+                                        });
+                                    }}>연동 해제</button>
+                                </>
+                            ) : (
+                                <>
+                                    <a href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID!}&response_type=code&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI!)}&scope=identify+guilds&prompt=none`}>
+                                        <button id="discord" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">연동하기</button>
+                                    </a>
+                                </>
+                            )}
+                            <br />
+                            <br />
+                        </>
+                    }
                     <label htmlFor="perm">권한</label>
                     <br />
                     <select value={perm} id="perm" disabled={perm !== 0} className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-[100%] dark:bg-[#424242]" onChange={e => {
