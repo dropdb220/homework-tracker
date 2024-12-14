@@ -100,8 +100,8 @@ export default function Header() {
                         </Link>
                         {showUtilMenu &&
                             <>
-                                <div className="hidden md:block fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10" onClick={() => setShowUtilMenu(false)}></div>
-                                <div className="hidden md:grid md:grid-cols-1 gap-2 absolute top-24 right-4 p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg z-10">
+                                <div className="hidden md:block fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40" onClick={() => setShowUtilMenu(false)}></div>
+                                <div className="hidden md:grid md:grid-cols-1 gap-2 absolute top-24 right-4 p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg z-50">
                                     {process.env.NEXT_PUBLIC_QNA_ENABLED == '1' &&
                                         <Link href="/question">
                                             <button className="p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowUtilMenu(false); }}>
@@ -158,8 +158,8 @@ export default function Header() {
                             <Image src="/menu.svg" alt="메뉴" width={24} height={24} className="kor dark:invert" />
                             <Image src="/menu.svg" alt="Menu" width={24} height={24} className="eng dark:invert" />
                         </button>
-                        <div className={`${!showMobileMenu && "hidden"} fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 md:hidden z-10`} onClick={e => { setShowMobileMenu(false); }} />
-                        <div className={`${!showMobileMenu && "hidden"} md:hidden h-[90%] fixed right-4 top-11 dark:bg-gray-800 mt-4 border border-gray-300 bg-white dark:border-gray-700 rounded-lg shadow-lg w-[35%] ml-auto mr-0 z-20`}>
+                        <div className={`${!showMobileMenu && "hidden"} fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 md:hidden z-40`} onClick={e => { setShowMobileMenu(false); }} />
+                        <div className={`${!showMobileMenu && "hidden"} md:hidden h-[90%] fixed right-4 top-11 dark:bg-gray-800 mt-4 border border-gray-300 bg-white dark:border-gray-700 rounded-lg shadow-lg w-[35%] ml-auto mr-0 z-50`}>
                             <div className="grid grid-cols md:hidden grid-rows-[auto_auto_1fr_auto] gap-2 w-[80%] ml-4 mr-4 mt-3 mb-3 z-20 h-full">
                                 {process.env.NEXT_PUBLIC_QNA_ENABLED == '1' && account && account.token && isValidToken &&
                                     <Link href="/question">

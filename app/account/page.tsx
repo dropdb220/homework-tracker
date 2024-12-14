@@ -18,6 +18,7 @@ export default function MyAccountInfoPage() {
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [notification, setNotification] = useLocalStorage<any>('notification', null);
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
     useEffect(() => {
         setIsClient(true);
@@ -129,6 +130,7 @@ export default function MyAccountInfoPage() {
                                     await subscription.unsubscribe();
                                 }
                             }
+                            setDeviceLang(navigator.language.startsWith('en') ? 1 : 0);
                             router.push('/');
                         });
                     }}>
