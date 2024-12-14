@@ -29,7 +29,12 @@ function Tag({ solved, className }: { solved: boolean, className?: string }) {
 
 function CreatedTime({ question }: { question: { idx: number, title: string, solved: boolean, question: string, answer?: string, created: Date, user: { id: string, firstName?: string, lastName?: string } } }) {
     const [tick, setTick] = useState<number>(0);
+    const [isClient, setIsClient] = useState<boolean>(false);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     useEffect(() => {
         const timeout = setTimeout(() => {
             setTick(tick + 1);
@@ -37,7 +42,7 @@ function CreatedTime({ question }: { question: { idx: number, title: string, sol
         return () => clearTimeout(timeout);
     }, [tick]);
 
-    return <h3 className="text-xl">{question.user.id}{question.user.firstName && question.user.lastName && ` (${question.user.firstName} ${question.user.lastName})`} | {formatDistanceToNowStrict(new Date(question.created), { locale: deviceLang === 1 ? enUS : ko, addSuffix: true })}</h3>;
+    return <h3 className="text-xl">{question.user.id}{question.user.firstName && question.user.lastName && ` (${question.user.firstName} ${question.user.lastName})`} | {formatDistanceToNowStrict(new Date(question.created), { locale: (deviceLang === 1 && isClient) ? enUS : ko, addSuffix: true })}</h3>;
 }
 
 function ImageModal({ src, children, className }: { src: string, children: React.ReactNode, className?: string }) {
@@ -73,9 +78,13 @@ function CopyButton({ content }: { content: string }) {
     const [dialogContent, setDialogContent] = useState<string>('');
     const [showDialog, setShowDialog] = useState<boolean>(false);
     const [dialogCallback, setDialogCallback] = useState<{ callback: (result: boolean) => void }>({ callback: () => { } });
+    const [isClient, setIsClient] = useState<boolean>(false);
 
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     useEffect(() => {
         if (!isCopied) return;
         const timeout = setTimeout(() => {
@@ -104,8 +113,8 @@ function CopyButton({ content }: { content: string }) {
             }
         }}>
             {isCopied ?
-                <Image src="/check.svg" alt={deviceLang === 1 ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
-                : <Image src="/copy.svg" alt={deviceLang === 1 ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
+                <Image src="/check.svg" alt={(deviceLang === 1 && isClient) ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
+                : <Image src="/copy.svg" alt={(deviceLang === 1 && isClient) ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
             }
         </button>
     )

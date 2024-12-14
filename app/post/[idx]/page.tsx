@@ -102,9 +102,13 @@ function CopyButton({ content }: { content: string }) {
     const [dialogContent, setDialogContent] = useState<string>('');
     const [showDialog, setShowDialog] = useState<boolean>(false);
     const [dialogCallback, setDialogCallback] = useState<{ callback: (result: boolean) => void }>({ callback: () => { } });
+    const [isClient, setIsClient] = useState<boolean>(false);
 
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     useEffect(() => {
         if (!isCopied) return;
         const timeout = setTimeout(() => {
@@ -133,8 +137,8 @@ function CopyButton({ content }: { content: string }) {
             }
         }}>
             {isCopied ?
-                <Image src="/check.svg" alt={deviceLang === 1 ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
-                : <Image src="/copy.svg" alt={deviceLang === 1 ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
+                <Image src="/check.svg" alt={(deviceLang === 1 && isClient) ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
+                : <Image src="/copy.svg" alt={(deviceLang === 1 && isClient) ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
             }
         </button>
     )

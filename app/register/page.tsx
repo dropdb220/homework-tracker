@@ -14,12 +14,17 @@ export default function Register() {
     const [id, setId] = useState('');
     const [duplicateID, setDuplicateID] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [isClient, setIsClient] = useState<boolean>(false);
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [newAccount, setNewAccount] = useLocalStorage<LSNewAccount | null>('newAccount', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
     if (account && account.token) router.replace('/account');
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     return (
         <div className="w-full lg:w-[80%] md:grid md:grid-cols-2 md:gap-2 ml-auto mr-auto">
@@ -81,7 +86,7 @@ export default function Register() {
                         });
                     }} />
                     <br />
-                    {(errorMsg !== '' || duplicateID) ? <p className="text-red-500">{errorMsg === '' ? (deviceLang === 1 ? "The ID is already in use." : '이미 사용 중인 아이디입니다.') : errorMsg}</p> : <br />}
+                    {(errorMsg !== '' || duplicateID) ? <p className="text-red-500">{errorMsg === '' ? ((deviceLang === 1 && isClient) ? "The ID is already in use." : '이미 사용 중인 아이디입니다.') : errorMsg}</p> : <br />}
                     <br />
                     <br />
                     <button className="w-[40%] ml-[60%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" type="submit" disabled={duplicateID || errorMsg !== ''}>

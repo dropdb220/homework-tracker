@@ -45,6 +45,7 @@ function ImageModal({ src, children, className }: { src: string, children: React
 export default function WritePost() {
     const router = useRouter();
 
+    const [isClient, setIsClient] = useState<boolean>(false);
     const [titleKo, setTitleKo] = useState('');
     const [titleEn, setTitleEn] = useState('');
     const [type, setType] = useState('4');
@@ -61,6 +62,9 @@ export default function WritePost() {
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     useEffect(() => {
         if (!account || !account.token) router.replace('/');
         else fetch(`/api/posts`, {
@@ -99,7 +103,7 @@ export default function WritePost() {
     return (
         <>
             <div className="border-b-slate-400 border-b">
-                <input type="text" autoFocus id="title" placeholder={deviceLang === 1 ? "Title" : "제목"} className="border border-slate-400 text-4xl rounded-lg p-4 w-[100%] dark:bg-[#424242]" value={lang == 1 ? titleEn : titleKo} onChange={e => {
+                <input type="text" autoFocus id="title" placeholder={(deviceLang === 1 && isClient) ? "Title" : "제목"} className="border border-slate-400 text-4xl rounded-lg p-4 w-[100%] dark:bg-[#424242]" value={lang == 1 ? titleEn : titleKo} onChange={e => {
                     if (lang == 1) setTitleEn(e.currentTarget.value);
                     else setTitleKo(e.currentTarget.value);
                 }} />
@@ -112,8 +116,8 @@ export default function WritePost() {
                     setType(e.currentTarget.value);
                 }}>
                     {
-                        Object.keys(deviceLang == 1 ? postTypeEn : postType).filter(key => (deviceLang == 1 ? postTypeEn : postType)[Number(key)] !== '').map((key) => {
-                            return <option key={key} value={key}>{(deviceLang == 1 ? postTypeEn : postType)[Number(key)]}</option>
+                        Object.keys((deviceLang == 1 && isClient) ? postTypeEn : postType).filter(key => ((deviceLang == 1 && isClient) ? postTypeEn : postType)[Number(key)] !== '').map((key) => {
+                            return <option key={key} value={key}>{((deviceLang == 1 && isClient) ? postTypeEn : postType)[Number(key)]}</option>
                         })
                     }
                 </select>

@@ -19,10 +19,13 @@ export default function Header() {
 
     useEffect(() => {
         setIsClient(true);
+    }, []);
+    useEffect(() => {
+        if (!isClient) return;
         if (lang === -1) {
             setLang(navigator.language.startsWith('en') ? 1 : 0);
         }
-    }, [lang, setLang]);
+    }, [lang, setLang, isClient]);
     useEffect(() => {
         if (navigator.userAgent.includes('KAKAO')) {
             location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);

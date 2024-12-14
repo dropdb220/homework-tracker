@@ -22,10 +22,14 @@ export default function LoginPhase1() {
     const [isOffline, setIsOffline] = useState(false);
     const [justLoggedIn, setJustLoggedIn] = useState(false);
     const [passkeySuccess, setPasskeySuccess] = useState(false);
+    const [isClient, setIsClient] = useState<boolean>(false);
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     useEffect(() => {
         if ((/iPhone|iPad/.test(navigator.userAgent) || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1)) && window.PublicKeyCredential &&
             PublicKeyCredential.isConditionalMediationAvailable) {
@@ -122,7 +126,7 @@ export default function LoginPhase1() {
                         setIsOffline(true);
                     })
                 }}>
-                    <input type="text" id="id" placeholder={deviceLang === 1 ? "ID" : "아이디"} className="border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete="username webauthn" autoFocus onChange={e => {
+                    <input type="text" id="id" placeholder={(deviceLang === 1 && isClient) ? "ID" : "아이디"} className="border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete="username webauthn" autoFocus onChange={e => {
                         setId(e.currentTarget.value);
                         setLoginFailed(false);
                     }} />

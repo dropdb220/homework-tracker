@@ -21,7 +21,10 @@ function CreatedTime({ datetime }: { datetime: Date }) {
         return () => clearInterval(interval);
     }, [tick]);
 
-    return <div>{formatDistanceToNowStrict(new Date(datetime), { locale: ko, addSuffix: true })}</div>
+    return <>
+        <div className="kor">{formatDistanceToNowStrict(new Date(datetime), { locale: ko, addSuffix: true })}</div>
+        <div className="eng">{formatDistanceToNowStrict(new Date(datetime), { locale: enUS, addSuffix: true })}</div>
+    </>
 }
 
 export default function QuestionList() {
@@ -32,7 +35,7 @@ export default function QuestionList() {
     const [page, setPage] = useState<number>(1);
     const [maxPage, setMaxPage] = useState<number>(1);
     const router = useRouter();
-    
+
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [notification, setNotification] = useLocalStorage<any>('notification', null);
     const [myOnly, setMyOnly] = useLocalStorage<boolean>('my_question_only', true);

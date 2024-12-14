@@ -15,11 +15,15 @@ export default function RegisterPassword() {
     const [passkeySupported, setPasskeySupported] = useState(false);
     const [goToPasskey, setGoToPasskey] = useState(false);
     const [errorMsg, setErrorMsg] = useState(' ');
+    const [isClient, setIsClient] = useState<boolean>(false);
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [newAccount, setNewAccount] = useLocalStorage<LSNewAccount | null>('newAccount', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     useEffect(() => {
         if (account && account.token && !goToPasskey) router.replace('/account');
     }, [account, router, goToPasskey]);
@@ -44,7 +48,7 @@ export default function RegisterPassword() {
                         <Image src="/back.svg" alt="뒤로가기" height={36} width={36} className="kor relative mt-[.125rem] dark:invert w-9 h-9" />
                         <Image src="/back.svg" alt="Back" height={36} width={36} className="eng relative mt-[.125rem] dark:invert w-9 h-9" />
                     </button>
-                    <h1 className="text-3xl ml-4">{newAccount?.id}</h1>
+                    <h1 className="text-3xl ml-4">{isClient ? newAccount?.id : ''}</h1>
                     <div></div>
                 </div>
             </div>
@@ -80,8 +84,8 @@ export default function RegisterPassword() {
                         }
                     });
                 }}>
-                    <input type="text" id="id" value={newAccount?.id} className="hidden" autoComplete="username" readOnly />
-                    <input type="password" id="pwd" placeholder={deviceLang === 1 ? "Password" : "비밀번호"} className="border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete='new-password' autoFocus onChange={e => {
+                    <input type="text" id="id" value={isClient ? newAccount?.id : ''} className="hidden" autoComplete="username" readOnly />
+                    <input type="password" id="pwd" placeholder={(deviceLang === 1 && isClient) ? "Password" : "비밀번호"} className="border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete='new-password' autoFocus onChange={e => {
                         setPwd(e.currentTarget.value);
                         if (e.currentTarget.value.length < 8 || e.currentTarget.value.length > 4096) setErrorMsg(deviceLang === 1 ? "Please enter your password between 8 and 4096 characters." : '비밀번호는 8자 이상 4096자 이하로 입력하세요.');
                         else setErrorMsg('');

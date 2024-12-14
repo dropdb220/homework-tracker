@@ -16,9 +16,13 @@ export default function LoginPhase2() {
     const [loggingIn, setLoggingIn] = useState(false);
     const [failedMsg, setFailedMsg] = useState('');
     const [isOffline, setIsOffline] = useState(false);
+    const [isClient, setIsClient] = useState<boolean>(false);
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
 
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     useEffect(() => {
         if (!account || !account.id) router.replace('/login/id');
     }, [account, router]);
@@ -59,7 +63,7 @@ export default function LoginPhase2() {
                         <Image src="/back.svg" alt="뒤로가기" height={36} width={36} className="relative mt-[.125rem] dark:invert w-9 h-9 kor" />
                         <Image src="/back.svg" alt="Back" height={36} width={36} className="relative mt-[.125rem] dark:invert w-9 h-9 eng" />
                         </button>
-                    <h1 className="text-3xl ml-4">{account?.id}</h1>
+                    <h1 className="text-3xl ml-4">{isClient ? account?.id : ''}</h1>
                     <div></div>
                 </div>
             </div>
