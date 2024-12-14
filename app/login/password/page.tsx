@@ -37,9 +37,16 @@ export default function LoginPhase2() {
 
     return isOffline ? (
         <>
-            <Image src="/offline.svg" alt="오프라인 상태" width={150} height={150} className="mt-2 mb-8 ml-auto mr-auto dark:invert" />
-            <h2>오프라인 상태입니다.</h2>
-            <p>로그인하려면 인터넷 연결이 필요합니다.</p>
+            <div className="kor">
+                <Image src="/offline.svg" alt="오프라인 상태" width={150} height={150} className="mt-2 mb-8 ml-auto mr-auto dark:invert" />
+                <h2>오프라인 상태입니다.</h2>
+                <p>로그인하려면 인터넷 연결이 필요합니다.</p>
+            </div>
+            <div className="eng">
+                <Image src="/offline.svg" alt="Offline" width={150} height={150} className="mt-2 mb-8 ml-auto mr-auto dark:invert" />
+                <h2>You{'\''}re offline.</h2>
+                <p>An active internet conenction is required to login.</p>
+            </div>
         </>
     ) : (
         <div className="w-full lg:w-[80%] md:grid md:grid-cols-2 md:gap-2 ml-auto mr-auto">
@@ -48,7 +55,10 @@ export default function LoginPhase2() {
                     <button onClick={(e) => {
                         e.preventDefault();
                         router.back();
-                    }}><Image src="/back.svg" alt="뒤로가기" height={36} width={36} className="relative mt-[.125rem] dark:invert w-9 h-9" /></button>
+                    }}>
+                        <Image src="/back.svg" alt="뒤로가기" height={36} width={36} className="relative mt-[.125rem] dark:invert w-9 h-9 kor" />
+                        <Image src="/back.svg" alt="Back" height={36} width={36} className="relative mt-[.125rem] dark:invert w-9 h-9 eng" />
+                        </button>
                     <h1 className="text-3xl ml-4">{account?.id}</h1>
                     <div></div>
                 </div>
@@ -77,7 +87,11 @@ export default function LoginPhase2() {
                     });
                 }}>
                     <input type="text" id="id" value={account?.id} className="hidden" autoComplete="username" readOnly />
-                    <input type="password" id="pwd" placeholder="비밀번호" className="border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete="current-password" autoFocus onKeyUp={e => {
+                    <input type="password" id="pwd1" placeholder="비밀번호" className="kor border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete="current-password" autoFocus onKeyUp={e => {
+                        setPwd(e.currentTarget.value);
+                        if (e.key.length === 1) setLoginFailed(false);
+                    }} />
+                    <input type="password" id="pwd2" placeholder="Password" className="eng border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete="current-password" autoFocus onKeyUp={e => {
                         setPwd(e.currentTarget.value);
                         if (e.key.length === 1) setLoginFailed(false);
                     }} />
@@ -86,7 +100,10 @@ export default function LoginPhase2() {
                     <br />
                     <br />
                     <br />
-                    <button className="w-[40%] ml-[60%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={pwd.length === 0 || loggingIn} type="submit">로그인</button>
+                    <button className="w-[40%] ml-[60%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={pwd.length === 0 || loggingIn} type="submit">
+                        <span className="kor">로그인{loggingIn ? " 중..." : ""}</span>
+                        <span className="eng">{loggingIn ? "Logging in..." : "Login"}</span>
+                    </button>
                 </form>
             </div>
         </div>

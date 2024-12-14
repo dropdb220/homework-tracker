@@ -1,11 +1,14 @@
 import { MongoClient } from "mongodb";
+import i18n from "@/app/i18n.json";
 
 export const dynamic = 'force-dynamic';
 
 export async function DELETE(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const token = request.headers.get('Authorization');
     if (!token) {
-        return new Response(JSON.stringify({ code: 1, msg: '로그아웃 상태입니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.alreadyLoggedOut[clientLang] }), { status: 400 });
     }
 
     const client = new MongoClient(process.env.MONGO!);
@@ -16,7 +19,7 @@ export async function DELETE(request: Request) {
 
     if (!user) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '입력한 ID는 존재하지 않습니다.' }), { status: 404 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentID[clientLang] }), { status: 404 });
     } else {
         await collection.deleteOne({ token });
         client.close();

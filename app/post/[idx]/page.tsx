@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDistanceStrict, formatDistanceToNowStrict } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale";
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkToc from 'remark-toc'
@@ -12,7 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Dialog from '@/app/dialog';
 
-import { deadlineName, postType, LSAccount } from "@/app/types";
+import { deadlineName, deadlineNameEn, postType, postTypeEn, LSAccount } from "@/app/types";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,8 @@ import { useLocalStorage } from "usehooks-ts";
 function Tag({ category, className }: { category: number, className?: string }) {
     return (
         <span className={`rounded-lg bg-blue-500 p-1 h-8 text-white ${className}`}>
-            #{postType[category] || '기타'}
+            <span className="kor">#{postType[category] || '기타'}</span>
+            <span className="eng">#{postTypeEn[category] || 'Other'}</span>
         </span>
     )
 }
@@ -35,7 +36,10 @@ function CreatedTime({ post }: { post: { count: number, title: string, type: num
         return () => clearTimeout(timeout);
     }, [tick]);
 
-    return <h3 className="text-xl">{post.author.id}{post.author.firstName && post.author.lastName && ` (${post.author.firstName} ${post.author.lastName})`} | {formatDistanceToNowStrict(new Date(post.created), { locale: ko, addSuffix: true })}</h3>;
+    return <>
+        <h3 className="text-xl kor">{post.author.id}{post.author.firstName && post.author.lastName && ` (${post.author.firstName} ${post.author.lastName})`} | {formatDistanceToNowStrict(new Date(post.created), { locale: ko, addSuffix: true })}</h3>
+        <h3 className="text-xl eng">{post.author.id}{post.author.firstName && post.author.lastName && ` (${post.author.firstName} ${post.author.lastName})`} | {formatDistanceToNowStrict(new Date(post.created), { locale: enUS, addSuffix: true })}</h3>
+    </>;
 }
 
 function ToDeadLine({ post }: { post: { count: number, title: string, type: number, content: string, deadline?: Date, created: Date, author: { id: string, firstName?: string, lastName?: string } } }) {
@@ -48,12 +52,20 @@ function ToDeadLine({ post }: { post: { count: number, title: string, type: numb
     }, [tick]);
 
     return (
-        <p className={`${post.deadline && (post.deadline as unknown as number - 0) >= new Date().setHours(0, 0, 0, 0) && (post.deadline as unknown as number - 0) - new Date().setHours(0, 0, 0, 0) <= 1000 * 60 * 60 * 24 * 2 && 'text-red-500'}`}>{deadlineName[post.type ?? 5]}: {post.deadline ? `${(post.deadline as unknown as number - 0) == new Date().setHours(0, 0, 0, 0) ? '오늘' : formatDistanceStrict(post.deadline, new Date(new Date().setHours(0, 0, 0, 0)), { locale: ko, addSuffix: true })}(${post.deadline.toLocaleDateString('ko-KR', {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-        })})` : '없음'}</p>
+        <>
+            <p className={`kor ${post.deadline && (post.deadline as unknown as number - 0) >= new Date().setHours(0, 0, 0, 0) && (post.deadline as unknown as number - 0) - new Date().setHours(0, 0, 0, 0) <= 1000 * 60 * 60 * 24 * 2 && 'text-red-500'}`}>{deadlineName[post.type ?? 5]}: {post.deadline ? `${(post.deadline as unknown as number - 0) == new Date().setHours(0, 0, 0, 0) ? '오늘' : formatDistanceStrict(post.deadline, new Date(new Date().setHours(0, 0, 0, 0)), { locale: ko, addSuffix: true })}(${post.deadline.toLocaleDateString('ko-KR', {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            })})` : '없음'}</p>
+            <p className={`eng ${post.deadline && (post.deadline as unknown as number - 0) >= new Date().setHours(0, 0, 0, 0) && (post.deadline as unknown as number - 0) - new Date().setHours(0, 0, 0, 0) <= 1000 * 60 * 60 * 24 * 2 && 'text-red-500'}`}>{deadlineNameEn[post.type ?? 5]}: {post.deadline ? `${(post.deadline as unknown as number - 0) == new Date().setHours(0, 0, 0, 0) ? 'Today' : formatDistanceStrict(post.deadline, new Date(new Date().setHours(0, 0, 0, 0)), { locale: enUS, addSuffix: true })}(${post.deadline.toLocaleDateString('en-US', {
+                weekday: "short",
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            })})` : 'None'}</p>
+        </>
     );
 }
 
@@ -91,6 +103,8 @@ function CopyButton({ content }: { content: string }) {
     const [showDialog, setShowDialog] = useState<boolean>(false);
     const [dialogCallback, setDialogCallback] = useState<{ callback: (result: boolean) => void }>({ callback: () => { } });
 
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
+
     useEffect(() => {
         if (!isCopied) return;
         const timeout = setTimeout(() => {
@@ -107,20 +121,20 @@ function CopyButton({ content }: { content: string }) {
                     setLastCopied(Date.now());
                 }).catch(() => {
                     setDialogType('alert');
-                    setDialogTitle('클립보드에 복사할 수 없음');
-                    setDialogContent('이 브라우저는 클립보드에 복사 기능을 지원하지만 알 수 없는 오류로 인해 현재 복사할 수 없습니다.\n아래 링크를 수동으로 복사해주세요.\n\n' + content);
+                    setDialogTitle(deviceLang === 1 ? "Couldn't Copy to Clipboard" : '클립보드에 복사할 수 없음');
+                    setDialogContent((deviceLang === 1 ? "This browser supports copying to clipboard, but copying is currently unavailable due to an unknown error.\nPlease manually copy the link below.\n\n" : '이 브라우저는 클립보드에 복사 기능을 지원하지만 알 수 없는 오류로 인해 현재 복사할 수 없습니다.\n아래 링크를 수동으로 복사해주세요.\n\n') + content);
                     setShowDialog(true);
                 });
             } else {
                 setDialogType('alert');
-                setDialogTitle('클립보드 미지원 브라우저');
-                setDialogContent('이 브라우저는 현재 클립보드에 복사 기능을 지원하지 않습니다.\n아래 링크를 수동으로 복사해주세요.\n\n' + content);
+                setDialogTitle(deviceLang === 1 ? "Clipboard Unsupported Browser" : '클립보드 미지원 브라우저');
+                setDialogContent((deviceLang === 1 ? "This browser doesn't support copying to clipboard. Please copy the link below.\n\n" : '이 브라우저는 현재 클립보드에 복사 기능을 지원하지 않습니다.\n아래 링크를 수동으로 복사해주세요.\n\n') + content);
                 setShowDialog(true);
             }
         }}>
             {isCopied ?
-                <Image src="/check.svg" alt="글 링크 복사하기" width={24} height={24} className="dark:invert max-w-8 max-h-8" />
-                : <Image src="/copy.svg" alt="글 링크 복사하기" width={24} height={24} className="dark:invert max-w-8 max-h-8" />
+                <Image src="/check.svg" alt={deviceLang === 1 ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
+                : <Image src="/copy.svg" alt={deviceLang === 1 ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
             }
         </button>
     )
@@ -138,6 +152,7 @@ export default function Post({ params }: { params: { idx: string } }) {
     const [dialogCallback, setDialogCallback] = useState<{ callback: (result: boolean) => void }>({ callback: () => { } });
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
     useEffect(() => {
         if (!account || !account.token) router.replace('/');
@@ -248,7 +263,10 @@ export default function Post({ params }: { params: { idx: string } }) {
                 {(perm <= 1 || account?.id === post.author.id) &&
                     <>
                         <Link href={`/write/${params.idx}`}>
-                            <button className="ml-[40%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">수정</button>
+                            <button className="ml-[40%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">
+                                <span className="kor">수정</span>
+                                <span className="eng">Edit</span>
+                            </button>
                         </Link>
                         <button className="ml-[10%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-red-500 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" onClick={e => {
                             fetch(`/api/post/${Number(params.idx)}`, {
@@ -258,9 +276,12 @@ export default function Post({ params }: { params: { idx: string } }) {
                                 }
                             }).then(response => {
                                 if (response.ok) router.push('/');
-                                else alert('삭제에 실패했습니다.');
+                                else alert(deviceLang === 1 ? "Failed to delete." : '삭제에 실패했습니다.');
                             })
-                        }}>삭제</button>
+                        }}>
+                            <span className="kor">삭제</span>
+                            <span className="eng">Delete</span>
+                        </button>
                     </>
                 }
                 {showDialog && <Dialog title={dialogTtile} content={dialogContent} type={dialogType} setShowDialog={setShowDialog} callback={dialogCallback.callback} />}

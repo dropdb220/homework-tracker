@@ -1,18 +1,16 @@
 import { MongoClient } from "mongodb";
 import fetch from "node-fetch";
+import i18n from "@/app/i18n.json";
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-    const code = (await request.json()).code;
-    if (!code) {
-        return new Response(JSON.stringify({ code: 1, msg: '유효하지 않은 접속입니다.' }), { status: 400 });
-    }
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const siteToken = request.headers.get('Authorization');
     if (!siteToken) {
-        return new Response(JSON.stringify({ code: 1, msg: '로그인이 필요합니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.loginRequired[clientLang] }), { status: 401 });
     }
-
     const client = new MongoClient(process.env.MONGO!);
     await client.connect();
     const db = client.db(process.env.DB_NAME);
@@ -20,13 +18,19 @@ export async function POST(request: Request) {
     const tokenToUser = await tokenCollection.findOne({ token: siteToken });
     if (!tokenToUser) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '로그인 상태가 아닙니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.invalidLogin[clientLang] }), { status: 401 });
     }
     const usersCollection = db.collection('users');
     const loginedUser = await usersCollection.findOne({ id: tokenToUser.id });
+    clientLang = loginedUser!.lang;
+    const code = (await request.json()).code;
+    if (!code) {
+        return new Response(JSON.stringify({ code: 1, msg: i18n.invalidAccess[clientLang] }), { status: 400 });
+    }
+
     if (loginedUser!.discordConnected) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '이미 연동된 계정이 있습니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.alreadyConnected[clientLang] }), { status: 400 });
     }
 
     const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
@@ -44,7 +48,7 @@ export async function POST(request: Request) {
     });
     if (!tokenResponse.ok) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: 'Discord 연동에 실패했습니다. (토큰 받기 실패)' }), { status: 500 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.failedToGetToken[clientLang] }), { status: 500 });
     }
     const token: any = await tokenResponse.json();
     const userResponse = await fetch('https://discord.com/api/users/@me', {
@@ -54,7 +58,7 @@ export async function POST(request: Request) {
     });
     if (!userResponse.ok) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: 'Discord 연동에 실패했습니다. (유저 정보 받기 실패)' }), { status: 500 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.failedToGetUser[clientLang] }), { status: 500 });
     }
     const user: any = await userResponse.json();
     const guildResponse = await fetch('https://discord.com/api/users/@me/guilds', {
@@ -64,13 +68,13 @@ export async function POST(request: Request) {
     });
     if (!guildResponse.ok) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: 'Discord 연동에 실패했습니다. (서버 정보 받기 실패)' }), { status: 500 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.failedToGetGuild[clientLang] }), { status: 500 });
     }
     const guilds: any = await guildResponse.json();
     const guild = guilds.find((guild: any) => guild.id === process.env.DISCORD_GUILD_ID);
     if (!guild) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: 'Discord 서버에 먼저 가입하세요.' }), { status: 403 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.notInGuild[clientLang] }), { status: 403 });
     }
     const assignRoleResponse = await fetch(`http://localhost:${process.env.DISCORD_BOT_SERVER_PORT}/authuser`, {
         method: 'POST',
@@ -82,7 +86,7 @@ export async function POST(request: Request) {
     });
     if (!assignRoleResponse.ok) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: 'Discord 연동에 실패했습니다. (역할 지정 실패)' }), { status: 500 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.failedToAssignRole[clientLang] }), { status: 500 });
     }
     await usersCollection.updateOne({ id: loginedUser!.id }, { $set: { discordConnected: true, discordID: user.id } });
     client.close();
@@ -90,9 +94,11 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const siteToken = request.headers.get('Authorization');
     if (!siteToken) {
-        return new Response(JSON.stringify({ code: 1, msg: '로그인이 필요합니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.loginRequired[clientLang] }), { status: 401 });
     }
 
     const client = new MongoClient(process.env.MONGO!);
@@ -102,13 +108,14 @@ export async function DELETE(request: Request) {
     const tokenToUser = await tokenCollection.findOne({ token: siteToken });
     if (!tokenToUser) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '로그인 상태가 아닙니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.invalidLogin[clientLang] }), { status: 401 });
     }
     const usersCollection = db.collection('users');
     const loginedUser = await usersCollection.findOne({ id: tokenToUser.id });
+    clientLang = loginedUser!.lang;
     if (!loginedUser!.discordConnected) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '연동된 계정이 없습니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.noAccount[clientLang] }), { status: 400 });
     }
 
     const removeRoleResponse = await fetch(`http://localhost:${process.env.DISCORD_BOT_SERVER_PORT}/deauthuser`, {
@@ -121,7 +128,7 @@ export async function DELETE(request: Request) {
     });
     if (!removeRoleResponse.ok) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: 'Discord 연동 해제에 실패했습니다. (역할 해제 실패)' }), { status: 500 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.failedToRemoveRole[clientLang] }), { status: 500 });
     }
     await usersCollection.updateOne({ id: loginedUser!.id }, { $set: { discordConnected: false, discordID: null } });
     client.close();

@@ -1,14 +1,17 @@
 import { MongoClient } from "mongodb";
 import { sendNotification, setVapidDetails } from "web-push";
+import i18n from "@/app/i18n.json"
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
 
     if (!id) {
-        return new Response(JSON.stringify({ code: 1, msg: 'ID를 입력하세요.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.noID[clientLang] }), { status: 400 });
     }
 
     const client = new MongoClient(process.env.MONGO!);
@@ -17,7 +20,7 @@ export async function GET(request: Request) {
     const collection = db.collection('users');
     const user = await collection.findOne({ id });
     if (!user) {
-        return new Response(JSON.stringify({ code: 1, msg: '입력한 ID는 존재하지 않습니다.' }), { status: 404 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentID[clientLang] }), { status: 404 });
     } else {
         return new Response(JSON.stringify({
             code: 0, data: {
@@ -37,18 +40,20 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : (request.headers.get('Accept-Language')?.startsWith("ko") ? 0 : 1);
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("ko") ? 0 : 1;
     const { id, pwd: rawPwd } = await request.json();
     if (!id || !rawPwd) {
-        return new Response(JSON.stringify({ code: 1, msg: 'ID와 비밀번호를 입력하세요.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.noIDorPW[clientLang] }), { status: 400 });
     }
     if (typeof id !== 'string' || typeof rawPwd !== 'string') {
-        return new Response(JSON.stringify({ code: 1, msg: '입력한 정보가 올바르지 않습니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.malformed[clientLang] }), { status: 400 });
     }
     if (id.length < 4 || id.length > 20) {
-        return new Response(JSON.stringify({ code: 1, msg: 'ID는 4자 이상 20자 이하로 입력하세요.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.IDLimit[clientLang] }), { status: 400 });
     }
     if (rawPwd.length < 8 || rawPwd.length > 4096) {
-        return new Response(JSON.stringify({ code: 1, msg: '비밀번호는 8자 이상 4096자 이하로 입력하세요.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.PWLimit[clientLang] }), { status: 400 });
     }
     let salt = '';
     for (let i = 0; i < 64; i++) {
@@ -68,9 +73,9 @@ export async function POST(request: Request) {
     const user = await usersCollection.findOne({ id });
     if (user) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '이미 존재하는 ID입니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.existingID[clientLang] }), { status: 400 });
     }
-    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], answerer: false, lang: 0, discordConnected: false });
+    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], answerer: false, lang: clientLang, discordConnected: false });
     let token = '';
     for (let i = 0; i < 64; i++) {
         token += Math.floor(Math.random() * 16).toString(16);
@@ -93,10 +98,12 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const { id, pwd, firstName, lastName, perm, accepted, allergy, answerer, lang } = await request.json();
     const token = request.headers.get('Authorization');
     if (!token) {
-        return new Response(JSON.stringify({ code: 1, msg: '로그인이 필요합니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.loginRequired[clientLang] }), { status: 401 });
     }
 
     const client = new MongoClient(process.env.MONGO!);
@@ -106,15 +113,16 @@ export async function PUT(request: Request) {
     const tokenToUser = await tokenCollection.findOne({ token });
     if (!tokenToUser) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '로그인 상태가 아닙니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.invalidLogin[clientLang] }), { status: 401 });
     }
     if (typeof id !== 'string') {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '입력한 정보가 올바르지 않습니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.malformed[clientLang] }), { status: 400 });
     }
 
     const usersCollection = db.collection('users');
     const loginedUser = await usersCollection.findOne({ id: tokenToUser.id });
+    clientLang = loginedUser!.lang;
     switch (loginedUser!.perm) {
         case 0:
             break;
@@ -122,12 +130,12 @@ export async function PUT(request: Request) {
             if (loginedUser!.id === id) {
                 if (perm != null || firstName != null || lastName != null || accepted != null || answerer != null) {
                     client.close();
-                    return new Response(JSON.stringify({ code: 1, msg: '이름, 승인 여부, 권한, 또는 질문 답변자 여부를 수정하려면 root 권한이 필요합니다.' }), { status: 403 });
+                    return new Response(JSON.stringify({ code: 1, msg: i18n.permError1[clientLang] }), { status: 403 });
                 }
             } else {
                 if (perm != null || pwd != null || allergy != null || answerer != null) {
                     client.close();
-                    return new Response(JSON.stringify({ code: 1, msg: '권한, 비밀번호, 알러지 정보, 또는 질문 답변자 여부를 수정하려면 root 권한이 필요합니다.' }), { status: 403 });
+                    return new Response(JSON.stringify({ code: 1, msg: i18n.permError2[clientLang] }), { status: 403 });
                 }
             }
             break;
@@ -135,36 +143,36 @@ export async function PUT(request: Request) {
             if (loginedUser!.id === id) {
                 if (perm != null || firstName != null || lastName != null || accepted != null || answerer != null) {
                     client.close();
-                    return new Response(JSON.stringify({ code: 1, msg: '이름, 승인 여부, 권한, 또는 질문 답변자 여부를 수정하려면 root 권한이 필요합니다.' }), { status: 403 });
+                    return new Response(JSON.stringify({ code: 1, msg: i18n.permError1[clientLang] }), { status: 403 });
                 }
             } else {
                 client.close();
-                return new Response(JSON.stringify({ code: 1, msg: '다른 사용자의 정보를 수정하려면 root 권한이 필요합니다.' }), { status: 403 });
+                return new Response(JSON.stringify({ code: 1, msg: i18n.permError3[clientLang] }), { status: 403 });
             }
             break;
         default:
             client.close();
-            return new Response(JSON.stringify({ code: 1, msg: '알 수 없는 오류가 발생했습니다.' }), { status: 500 });
+            return new Response(JSON.stringify({ code: 1, msg: i18n.unknown[clientLang] }), { status: 500 });
     }
 
     const user = await usersCollection.findOne({ id });
     if (!user) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '입력한 ID가 존재하지 않습니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentID[clientLang] }), { status: 400 });
     } else {
         if (loginedUser!.perm !== 0 && id !== loginedUser!.id && user.perm < 2) {
             client.close();
-            return new Response(JSON.stringify({ code: 1, msg: '관리자 이상의 권한을 가진 사용자의 정보를 수정하려면 root 권한이 필요합니다.' }), { status: 403 });
+            return new Response(JSON.stringify({ code: 1, msg: i18n.permError4[clientLang] }), { status: 403 });
         }
         if ((pwd && typeof pwd !== 'string') || (firstName && typeof firstName !== 'string') || (lastName && typeof lastName !== 'string') || (perm != null && typeof perm !== 'number') || (accepted != null && typeof accepted !== 'boolean') || (allergy && !Array.isArray(allergy)) || (answerer != null && typeof answerer !== 'boolean')) {
             client.close();
-            return new Response(JSON.stringify({ code: 1, msg: '입력한 정보가 올바르지 않습니다.' }), { status: 400 });
+            return new Response(JSON.stringify({ code: 1, msg: i18n.malformed[clientLang] }), { status: 400 });
         }
         const updateList = { $set: {} };
         if (pwd) {
             if (pwd.length < 8 || pwd.length > 4096) {
                 client.close();
-                return new Response(JSON.stringify({ code: 1, msg: '비밀번호는 8자 이상 4096자 이하로 입력하세요.' }), { status: 400 });
+                return new Response(JSON.stringify({ code: 1, msg: i18n.PWLimit[clientLang] }), { status: 400 });
             }
             let salt = '';
             for (let i = 0; i < 64; i++) {

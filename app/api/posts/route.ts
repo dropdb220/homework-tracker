@@ -1,10 +1,13 @@
 import { MongoClient } from "mongodb";
 import { sendNotification, setVapidDetails } from "web-push";
 import { postType, postTypeEn } from "@/app/types";
+import i18n from "@/app/i18n.json";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const client = new MongoClient(process.env.MONGO!);
     await client.connect();
     const db = client.db(process.env.DB_NAME);
@@ -12,22 +15,23 @@ export async function GET(request: Request) {
     const token = request.headers.get('Authorization');
     if (!token) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '로그인이 필요합니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.loginRequired[clientLang] }), { status: 401 });
     }
     const tokenData = await tokensCollection.findOne({ token });
     if (!tokenData) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '유효하지 않은 토큰입니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentToken[clientLang] }), { status: 401 });
     }
     const usersCollection = db.collection('users');
     const userData = await usersCollection.findOne({ id: tokenData.id });
     if (!userData) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '유효하지 않은 사용자입니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.invalidUser[clientLang] }), { status: 401 });
     }
+    clientLang = userData.lang;
     if (!userData.accepted) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '승인 대기 중입니다.' }), { status: 403 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.notApproved[clientLang] }), { status: 403 });
     }
     const postsCollection = db.collection('posts');
     let posts = await postsCollection.find().toArray();
@@ -56,9 +60,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const token = request.headers.get('Authorization');
     if (!token) {
-        return new Response(JSON.stringify({ code: 1, msg: '로그인이 필요합니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.loginRequired[clientLang] }), { status: 401 });
     }
     const client = new MongoClient(process.env.MONGO!);
     await client.connect();
@@ -67,34 +73,35 @@ export async function POST(request: Request) {
     const tokenData = await tokenCollection.findOne({ token });
     if (!tokenData) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '로그인이 필요합니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentToken[clientLang] }), { status: 401 });
     }
     const usersCollection = db.collection('users');
     const userData = await usersCollection.findOne({ id: tokenData.id });
     if (!userData) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '유효하지 않은 사용자입니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.invalidUser[clientLang] }), { status: 401 });
     }
+    clientLang = userData.lang;
     if (!userData.accepted) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '승인 대기 중입니다.' }), { status: 403 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.notApproved[clientLang] }), { status: 403 });
     }
     const data = await request.json();
     if (!data.title || data.type == null || !data.content) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '제목, 타입, 내용을 입력하세요.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.postMissingFields[clientLang] }), { status: 400 });
     }
     if (typeof data.title !== 'string' || (data.title_en != null && typeof data.title_en !== 'string') || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.content_en != null && typeof data.content_en !== 'string') || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date'))) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '제목, 내용은 문자열, 유형은 숫자, 마감 기한은 유효한 날짜여야 합니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.postMalformedFields[clientLang] }), { status: 400 });
     }
     if (data.type < 0 || data.type >= (postType as Array<string>).length - 1) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '유효하지 않은 유형입니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.postTypeMalformed[clientLang] }), { status: 400 });
     }
     if (data.type === 0 && userData.perm > 1) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '중요 공지는 관리자만 등록할 수 있습니다.' }), { status: 403 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.importantType[clientLang] }), { status: 403 });
     }
     const postsCollection = db.collection('posts');
     const count = (await postsCollection.find().toArray()).map(x => x.count).reduce((a: number, b: number) => Math.max(a, b), 0) + 1;
@@ -105,7 +112,7 @@ export async function POST(request: Request) {
         user.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify([{
                 title: user.lang == 1 ? `${postTypeEn[data.type]} Announcement Posted` : `${postType[data.type]} 공지 등록됨`,
-                body: user.lang == 1 ? `${data.title_en ?? data.title} was posted just now.` : `${data.title}이(가) 등록되었습니다.`,
+                body: user.lang == 1 ? `${data.title_en === "" ? data.title : data.title_en} was posted just now.` : `${data.title}이(가) 등록되었습니다.`,
                 tag: count.toString()
             }])).catch(() => { })
         });

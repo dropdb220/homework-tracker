@@ -4,7 +4,8 @@ const { sendNotification, setVapidDetails } = webpush;
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 
-const allergyMap = ['난류', '우유', '메밀', '땅콩', '대두', '밀', '고등어', '게', '새우', '돼지고기', '복숭아', '토마토', '아황산류', '호두', '닭고기', '쇠고기', '오징어', '조개류', '잣']
+const allergyMap = [['난류', 'Eggs'], ['우유', 'Milk'], ['메밀', 'Buckwheat'], ['땅콩', 'Peanuts'], ['대두', 'Soybeans'], ['밀', 'Wheat'], ['고등어', 'Mackerel'], ['게', 'Crab'], ['새우', 'Shrimp'], ['돼지고기', 'Pork'], ['복숭아', 'Peach'], ['토마토', 'Tomato'], ['아황산류', 'Sulfur Dioxide'], ['호두', 'Walnuts'], ['닭고기', 'Chicken'], ['쇠고기', 'Beef'], ['오징어', 'Squid'], ['조개류', 'Shellfish'], ['잣', 'Pine Nuts']]
+
 
 const NODE_ENV = process.env.NODE_ENV || "development";
 
@@ -28,8 +29,10 @@ userList.forEach(user => {
     if (!user.allergy.some((x: number) => uniqueList.includes(x))) return;
     user.subscriptions.forEach(async (sub: any) => {
         sendNotification(sub, JSON.stringify([{
-            title: '급식 알러지 알림',
-            body: `급식 중 ${user.allergy.filter((x: number) => uniqueList.includes(x)).map(x => allergyMap[x - 1]).join(', ')} 알러지 유발 식품이 포함되어 있습니다.`,
+            title: user.lang === 1 ? "Allergy Notification" : '급식 알러지 알림',
+            body: user.lang === 1
+            ? `Foods that cause ${user.allergy.filter((x: number) => uniqueList.includes(x)).map(x => allergyMap[x - 1][1]).join(', ')} allergies are included in the meal.`
+            : `급식 중 ${user.allergy.filter((x: number) => uniqueList.includes(x)).map(x => allergyMap[x - 1][0]).join(', ')} 알러지 유발 식품이 포함되어 있습니다.`,
             tag: 'allergy'
         }])).catch(() => { })
     });

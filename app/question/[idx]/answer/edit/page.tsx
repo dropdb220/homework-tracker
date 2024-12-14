@@ -55,6 +55,7 @@ export default function UpdateAnswer({ params }: { params: { idx: string } }) {
     const [isOffline, setIsOffline] = useState(false);
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
     useEffect(() => {
         if (!account || !account.token) router.replace('/');
@@ -122,22 +123,25 @@ export default function UpdateAnswer({ params }: { params: { idx: string } }) {
     return (
         <>
             <div className="border-b-slate-400 border-b">
+                <p className="eng">Editing the answer for question</p>
                 <h1 className="text-4xl font-bold">{title}</h1>
-                <p>에 대한 답변 수정 중</p>
+                <p className="kor">에 대한 답변 수정 중</p>
                 <br />
             </div>
             <div>
                 <br />
-                <div>Discord, GitHub 등에서 사용하는 마크다운 문법이 적용됩니다.</div>
+                <div className="kor">Discord, GitHub 등에서 사용하는 마크다운 문법이 적용됩니다.</div>
+                <div className="eng">Markdown syntax used in Discord, GitHub, etc. is supported.</div>
                 <br />
                 <input type="checkbox" defaultChecked={false} id="preview" className="mr-2 h-4 w-4" onChange={e => {
                     setPreview(e.currentTarget.checked);
                 }} />
-                <label htmlFor="preview" className="ml-2">미리보기</label>
+                <label htmlFor="preview" className="ml-2 kor">미리보기</label>
+                <label htmlFor="preview" className="ml-2 eng">Preview</label>
                 <br />
-                <label htmlFor="lang">언어: </label>
-                <input type="radio" name="lang" id="lang_ko"  className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(0); }} defaultChecked />한국어
-                <input type="radio" name="lang" id="lang_en"  className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(1); }} />English
+                <label htmlFor="lang">언어{'('}Language{')'}: </label>
+                <input type="radio" name="lang" id="lang_ko" className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(0); }} defaultChecked />한국어
+                <input type="radio" name="lang" id="lang_en" className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(1); }} />English
                 <br />
                 {preview ?
                     <div className="border border-slate-400 rounded-lg p-4 dark:bg-[#424242]">
@@ -201,7 +205,10 @@ export default function UpdateAnswer({ params }: { params: { idx: string } }) {
             <button className="float-left ml-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={isUploading} onClick={e => {
                 e.preventDefault();
                 document.getElementById('upload')?.click();
-            }}>{isUploading ? '업로드 중' : '파일 업로드'}</button>
+            }}>
+                <span className="kor">{isUploading ? '업로드 중...' : '파일 업로드'}</span>
+                <span className="eng">{isUploading ? 'Uploading...' : 'Upload File'}</span>
+            </button>
             <input type="file" className="hidden" id="upload" onChange={e => {
                 e.preventDefault();
                 setIsUploading(true);
@@ -226,7 +233,8 @@ export default function UpdateAnswer({ params }: { params: { idx: string } }) {
                         })
                     } else {
                         if (response.status === 413) {
-                            setErrorMsg(`${process.env.NEXT_PUBLIC_UPLOAD_LIMIT_MIB}MB 이하의 파일만 업로드할 수 있습니다.`);
+                            if (deviceLang === 1) setErrorMsg(`The file size should be less than ${process.env.NEXT_PUBLIC_UPLOAD_LIMIT_MIB}MiB.`);
+                            else setErrorMsg(`${process.env.NEXT_PUBLIC_UPLOAD_LIMIT_MIB}MiB 이하의 파일만 업로드할 수 있습니다.`);
                         } else {
                             response.json().then(data => {
                                 setErrorMsg(data.msg);
@@ -259,7 +267,10 @@ export default function UpdateAnswer({ params }: { params: { idx: string } }) {
                         });
                     }
                 });
-            }}>{isOffline ? '오프라인' : '확인'}</button>
+            }}>
+                <span className="kor">{isOffline ? '오프라인' : '확인'}</span>
+                <span className="eng">{isOffline ? 'Offline' : 'Submit'}</span>
+            </button>
             {errorMsg !== '' && <p className="text-red-500">{errorMsg}</p>}
         </>
     );

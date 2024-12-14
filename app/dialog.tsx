@@ -19,13 +19,19 @@ export default function dialog({ title, content, type, setShowDialog, callback }
                             e.preventDefault();
                             setShowDialog(false);
                             callback(false);
-                        }}>취소</button>
+                        }}>
+                            <span className="kor">취소</span>
+                            <span className="eng">Cancel</span>
+                        </button>
                         : <></>}
                     <button className="p-4" onClick={(e) => {
                         e.preventDefault();
                         setShowDialog(false);
                         if (callback && type === 'confirm') callback(true);
-                    }}>확인</button>
+                    }}>
+                        <span className="kor">확인</span>
+                        <span className="eng">OK</span>
+                    </button>
                 </div>
             </div>
         </>

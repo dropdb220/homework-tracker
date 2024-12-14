@@ -1,16 +1,19 @@
 import { MongoClient } from "mongodb";
+import i18n from "@/app/i18n.json";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
 
     if (!id) {
-        return new Response(JSON.stringify({ code: 1, msg: 'ID를 입력하세요.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.noID[clientLang] }), { status: 400 });
     }
     if (id.length < 4 || id.length > 20) {
-        return new Response(JSON.stringify({ code: 1, msg: 'ID는 4자 이상 20자 이하로 입력하세요.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.IDLimit[clientLang] }), { status: 400 });
     }
 
     const client = new MongoClient(process.env.MONGO!);
@@ -20,8 +23,8 @@ export async function GET(request: Request) {
     const user = await collection.findOne({ id });
     client.close();
     if (!user) {
-        return new Response(JSON.stringify({ code: 1, msg: '입력한 ID는 존재하지 않습니다.' }), { status: 404 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentID[clientLang] }), { status: 404 });
     } else {
-        return new Response(JSON.stringify({ code: 0, id: user.id }), { status: 200 });
+        return new Response(JSON.stringify({ code: 0, id: user.id, lang: user.lang }), { status: 200 });
     }
 }

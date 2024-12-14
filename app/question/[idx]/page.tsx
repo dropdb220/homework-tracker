@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDistanceStrict, formatDistanceToNowStrict } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale";
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkToc from 'remark-toc'
@@ -21,13 +21,15 @@ import { useLocalStorage } from "usehooks-ts";
 function Tag({ solved, className }: { solved: boolean, className?: string }) {
     return (
         <span className={`rounded-lg bg-${solved ? 'green' : 'red'}-500 p-1 h-8 text-white ${className}`}>
-            {solved ? '해결' : '미해결'}
+            <span className="kor">{solved ? '해결' : '미해결'}</span>
+            <span className="eng">{solved ? 'Solved' : 'Unsolved'}</span>
         </span>
     )
 }
 
 function CreatedTime({ question }: { question: { idx: number, title: string, solved: boolean, question: string, answer?: string, created: Date, user: { id: string, firstName?: string, lastName?: string } } }) {
     const [tick, setTick] = useState<number>(0);
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
     useEffect(() => {
         const timeout = setTimeout(() => {
             setTick(tick + 1);
@@ -35,7 +37,7 @@ function CreatedTime({ question }: { question: { idx: number, title: string, sol
         return () => clearTimeout(timeout);
     }, [tick]);
 
-    return <h3 className="text-xl">{question.user.id}{question.user.firstName && question.user.lastName && ` (${question.user.firstName} ${question.user.lastName})`} | {formatDistanceToNowStrict(new Date(question.created), { locale: ko, addSuffix: true })}</h3>;
+    return <h3 className="text-xl">{question.user.id}{question.user.firstName && question.user.lastName && ` (${question.user.firstName} ${question.user.lastName})`} | {formatDistanceToNowStrict(new Date(question.created), { locale: deviceLang === 1 ? enUS : ko, addSuffix: true })}</h3>;
 }
 
 function ImageModal({ src, children, className }: { src: string, children: React.ReactNode, className?: string }) {
@@ -72,6 +74,8 @@ function CopyButton({ content }: { content: string }) {
     const [showDialog, setShowDialog] = useState<boolean>(false);
     const [dialogCallback, setDialogCallback] = useState<{ callback: (result: boolean) => void }>({ callback: () => { } });
 
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
+
     useEffect(() => {
         if (!isCopied) return;
         const timeout = setTimeout(() => {
@@ -88,20 +92,20 @@ function CopyButton({ content }: { content: string }) {
                     setLastCopied(Date.now());
                 }).catch(() => {
                     setDialogType('alert');
-                    setDialogTitle('클립보드에 복사할 수 없음');
-                    setDialogContent('이 브라우저는 클립보드에 복사 기능을 지원하지만 알 수 없는 오류로 인해 현재 복사할 수 없습니다.\n아래 링크를 수동으로 복사해주세요.\n\n' + content);
+                    setDialogTitle(deviceLang === 1 ? "Couldn't Copy to Clipboard" : '클립보드에 복사할 수 없음');
+                    setDialogContent((deviceLang === 1 ? "This browser supports copying to clipboard, but copying is currently unavailable due to an unknown error.\nPlease manually copy the link below.\n\n" : '이 브라우저는 클립보드에 복사 기능을 지원하지만 알 수 없는 오류로 인해 현재 복사할 수 없습니다.\n아래 링크를 수동으로 복사해주세요.\n\n') + content);
                     setShowDialog(true);
                 });
             } else {
                 setDialogType('alert');
-                setDialogTitle('클립보드 미지원 브라우저');
-                setDialogContent('이 브라우저는 현재 클립보드에 복사 기능을 지원하지 않습니다.\n아래 링크를 수동으로 복사해주세요.\n\n' + content);
+                setDialogTitle(deviceLang === 1 ? "Clipboard Unsupported Browser" : '클립보드 미지원 브라우저');
+                setDialogContent((deviceLang === 1 ? "This browser doesn't support copying to clipboard. Please copy the link below.\n\n" : '이 브라우저는 현재 클립보드에 복사 기능을 지원하지 않습니다.\n아래 링크를 수동으로 복사해주세요.\n\n') + content);
                 setShowDialog(true);
             }
         }}>
             {isCopied ?
-                <Image src="/check.svg" alt="글 링크 복사하기" width={24} height={24} className="dark:invert max-w-8 max-h-8" />
-                : <Image src="/copy.svg" alt="글 링크 복사하기" width={24} height={24} className="dark:invert max-w-8 max-h-8" />
+                <Image src="/check.svg" alt={deviceLang === 1 ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
+                : <Image src="/copy.svg" alt={deviceLang === 1 ? "Copy Post Link" : "글 링크 복사하기"} width={24} height={24} className="dark:invert max-w-8 max-h-8" />
             }
         </button>
     )
@@ -120,6 +124,7 @@ export default function Question({ params }: { params: { idx: string } }) {
     const [dialogCallback, setDialogCallback] = useState<{ callback: (result: boolean) => void }>({ callback: () => { } });
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
 
     useEffect(() => {
         if (!account || !account.token) router.replace('/');
@@ -175,7 +180,10 @@ export default function Question({ params }: { params: { idx: string } }) {
                 </div>
                 <div>
                     <br />
-                    <h2 className="text-3xl font-bold">질문</h2>
+                    <h2 className="text-3xl font-bold">
+                        <span className="kor">질문</span>
+                        <span className="eng">Question</span>
+                    </h2>
                     <br />
                     <Markdown
                         remarkPlugins={[
@@ -233,7 +241,12 @@ export default function Question({ params }: { params: { idx: string } }) {
             <div className="lg:mt-24 md:ml-8">
                 <div className="border-b border-b-slate-400">
                     <br />
-                    <h2 className="text-3xl font-bold">답변{!question.solved && ' 없음'}</h2>
+                    <h2 className="text-3xl font-bold">
+                        {!question.solved && <span className="eng">No </span>}
+                        <span className="kor">답변</span>
+                        <span className="eng">Answer</span>
+                        {!question.solved && <span className="kor"> 없음</span>}
+                    </h2>
                     <br />
                     <Markdown
                         remarkPlugins={[
@@ -292,11 +305,17 @@ export default function Question({ params }: { params: { idx: string } }) {
                     (
                         question.solved ? (
                             <Link href={`/question/${params.idx}/answer/edit`}>
-                                <button className={`ml-[${(perm < 1 || account?.id === question.user.id) ? 5 : 0}%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`}>답변 수정</button>
+                                <button className={`ml-[${(perm < 1 || account?.id === question.user.id) ? 5 : 0}%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`}>
+                                    <span className="kor">답변 수정</span>
+                                    <span className="eng">Edit Answer</span>
+                                </button>
                             </Link>
                         ) : (
                             <Link href={`/question/${params.idx}/answer`}>
-                                <button className={`ml-[${(perm < 1 || account?.id === question.user.id) ? 5 : 0}%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`}>답변</button>
+                                <button className={`ml-[${(perm < 1 || account?.id === question.user.id) ? 5 : 0}%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`}>
+                                    <span className="kor">답변</span>
+                                    <span className="eng">Add Answer</span>
+                                </button>
                             </Link>
                         )
                     )
@@ -304,7 +323,10 @@ export default function Question({ params }: { params: { idx: string } }) {
                 {(perm < 1 || account?.id === question.user.id) &&
                     <>
                         <Link href={`/question/${params.idx}/edit`}>
-                            <button className={`ml-[${(perm === 0 || answerer) ? '10' : '40'}%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`}>수정</button>
+                            <button className={`ml-[${(perm === 0 || answerer) ? '10' : '40'}%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`}>
+                                <span className="kor">수정</span>
+                                <span className="eng">Edit</span>
+                            </button>
                         </Link>
                         <button className="ml-[10%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-red-500 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" onClick={e => {
                             fetch(`/api/question/${Number(params.idx)}`, {
@@ -314,9 +336,12 @@ export default function Question({ params }: { params: { idx: string } }) {
                                 }
                             }).then(response => {
                                 if (response.ok) router.push('/question');
-                                else alert('삭제에 실패했습니다.');
+                                else alert(deviceLang === 1 ? "Failed to delete." : '삭제에 실패했습니다.');
                             })
-                        }}>삭제</button>
+                        }}>
+                            <span className="kor">삭제</span>
+                            <span className="eng">Delete</span>
+                        </button>
                     </>
                 }
             </div>

@@ -1,14 +1,17 @@
 import { MongoClient } from "mongodb";
+import i18n from "@/app/i18n.json";
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const { id, pwd: rawPwd } = await request.json();
     if (!id || !rawPwd) {
-        return new Response(JSON.stringify({ code: 1, msg: 'ID와 비밀번호를 입력하세요.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.noIDorPW[clientLang] }), { status: 400 });
     }
     if (typeof id !== 'string' || typeof rawPwd !== 'string') {
-        return new Response(JSON.stringify({ code: 1, msg: '입력한 정보가 올바르지 않습니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.malformed[clientLang] }), { status: 400 });
     }
 
     const client = new MongoClient(process.env.MONGO!);
@@ -19,8 +22,9 @@ export async function POST(request: Request) {
 
     if (!user) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '입력한 ID는 존재하지 않습니다.' }), { status: 404 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentID[clientLang] }), { status: 404 });
     } else {
+        clientLang = user.lang;
         const salt = user.salt;
         const firstHash = await globalThis.crypto.subtle.digest('SHA-512', new TextEncoder().encode(rawPwd + salt));
         const secondHash = await globalThis.crypto.subtle.digest('SHA-512', new TextEncoder().encode(Array.from(new Uint8Array(firstHash)).map((b) => b.toString(16).padStart(2, "0")).join("") + salt));
@@ -31,7 +35,7 @@ export async function POST(request: Request) {
 
         if (hash !== user.pwd) {
             client.close();
-            return new Response(JSON.stringify({ code: 1, msg: '비밀번호가 일치하지 않습니다.' }), { status: 401 });
+            return new Response(JSON.stringify({ code: 1, msg: i18n.PWMismatch[clientLang] }), { status: 401 });
         } else {
             let token = '';
             for (let i = 0; i < 64; i++) {

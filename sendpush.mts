@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 import webpush from "web-push";
 const { sendNotification, setVapidDetails } = webpush;
-import { postType, deadlineName } from "./app/types.js";
+import { postType, deadlineName, postTypeEn, deadlineNameEn } from "./app/types.js";
 import dotenv from "dotenv";
 
 const NODE_ENV = process.env.NODE_ENV || "development";
@@ -37,12 +37,23 @@ if (closestExam) {
                 month: "long",
                 day: "numeric",
                 timeZone: 'Asia/Seoul'
-            })}\n${tomorrow.subjects.map((subj: string, idx: number) => `${idx + 1}교시 ${subj}`).join('\n')}`,
+            })}\n${tomorrow.subjects.map((subj: string, idx: number) => `${idx + 1}교시 ${subj[0]}`).join('\n')}`,
+            tag: 'exam'
+        };
+        const dataEn = {
+            title: `Exam Subject Notification`,
+            body: `${new Date(tomorrow.date).toLocaleDateString('en_US', {
+                weekday: "short",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                timeZone: 'Asia/Seoul'
+            })}\n${tomorrow.subjects.map((subj: string, idx: number) => `Period ${idx + 1}: ${subj[1]}`).join('\n')}`,
             tag: 'exam'
         };
         userList.forEach(user => {
             user.subscriptions.forEach(async (sub: any) => {
-                sendNotification(sub, JSON.stringify([data])).catch(() => { })
+                sendNotification(sub, JSON.stringify([user.lang === 1 ? dataEn : data])).catch(() => { })
             });
         });
     }
@@ -57,9 +68,14 @@ if (closestCsat) {
         body: `${closestCsat.year}년 ${closestCsat.month}월 ${closestCsat.type} 1일 전입니다.`,
         tag: 'csat'
     };
+    const dataEn = {
+        title: `CSAT/Mock CSAT in 1 Day`,
+        body: `${closestCsat.year}/${closestCsat.month} ${closestCsat.type_en} is tomorrow.`,
+        tag: 'csat'
+    };
     userList.forEach(user => {
         user.subscriptions.forEach(async (sub: any) => {
-            sendNotification(sub, JSON.stringify([data])).catch(() => { })
+            sendNotification(sub, JSON.stringify([user.lang === 1 ? dataEn : data])).catch(() => { })
         });
     });
 }
@@ -73,6 +89,19 @@ const data = twoDaysLeft.map(post => {
     return {
         title: `${postType[post.type]} ${deadlineName[post.type]} 1일 전`,
         body: `${post.title} ${deadlineName[post.type]} 1일 전입니다.`,
+        tag: post.count.toString()
+    }
+}));
+const dataEn = twoDaysLeft.map(post => {
+    return {
+        title: `${postTypeEn[post.type]} ${deadlineNameEn[post.type]} in 2 Days`,
+        body: `${post.title_en === "" ? post.title : post.title_en} ${deadlineNameEn[post.type]} is in 2 days.`,
+        tag: post.count.toString()
+    }
+}).concat(oneDayLeft.map(post => {
+    return {
+        title: `${postTypeEn[post.type]} ${deadlineNameEn[post.type]} in 1 Day`,
+        body: `${post.title_en === "" ? post.title : post.title_en} ${deadlineNameEn[post.type]} is tomorrow.`,
         tag: post.count.toString()
     }
 }));

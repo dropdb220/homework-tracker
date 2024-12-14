@@ -1,14 +1,17 @@
 import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import { MongoClient } from 'mongodb';
+import i18n from '@/app/i18n.json';
 
 import type { Passkey } from '@/app/types';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+    let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
+    if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const token = request.headers.get('Authorization');
     if (!token) {
-        return new Response(JSON.stringify({ code: 1, msg: '로그인이 필요합니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.loginRequired[clientLang] }), { status: 401 });
     }
     const client = new MongoClient(process.env.MONGO!);
     await client.connect();
@@ -17,7 +20,7 @@ export async function POST(request: Request) {
     const tokenData = await tokensCollection.findOne({ token });
     if (!tokenData) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '유효하지 않은 토큰입니다.' }), { status: 401 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentToken[clientLang] }), { status: 401 });
     }
 
     const id = tokenData.id;
@@ -25,17 +28,18 @@ export async function POST(request: Request) {
     const user = await usersCollection.findOne({ id });
     if (!user) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '유효하지 않은 ID입니다.' }), { status: 404 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentID[clientLang] }), { status: 404 });
     }
+    clientLang = user.lang;
     if (!user.currentChallenge) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '유효하지 않은 접근입니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.invalidAccess[clientLang] }), { status: 400 });
     }
 
     const credential = await request.json();
     if (!credential) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '패스키 정보가 필요합니다.' }), { status: 400 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.noPasskey[clientLang] }), { status: 400 });
     }
 
     let verification;
@@ -55,7 +59,7 @@ export async function POST(request: Request) {
     const { verified } = verification;
     if (!verified) {
         client.close();
-        return new Response(JSON.stringify({ code: 1, msg: '패스키 등록에 실패했습니다.' }), { status: 500 });
+        return new Response(JSON.stringify({ code: 1, msg: i18n.registerPKFailed[clientLang] }), { status: 500 });
     }
     const { registrationInfo } = verification;
     const {
