@@ -96,6 +96,23 @@ export default function QuestionList() {
         if (questions.length > 0 && maxPage < page) setPage(maxPage);
     }, [questions, page, maxPage, unsolvedOnly, myOnly, account]);
 
+  useEffect(() => {
+    if (questions.length === 0) return;
+    questions.forEach(question => {
+      fetch(`/question/${question.idx}`).catch(() => { }); // cache to service worker
+    });
+    if (account && account.token) {
+        questions.forEach(question => {
+            fetch(`/api/question/${question.idx}`, {
+                method: 'GET',
+                headers: {
+                    Authorization: account.token!
+                }
+            }).catch(() => { }); // cache to service worker
+        });
+    }
+  }, [questions, account]);
+
     return (
         <div className="w-[90%] md:w-[700px] md:border md:border-slate-400 md:p-8 md:rounded-lg ml-auto mr-auto">
             {canView && isClient ?

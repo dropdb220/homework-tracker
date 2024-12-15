@@ -191,7 +191,7 @@ export default function MyAccountEditpage() {
                     <label htmlFor="pwd" className="kor">비밀번호 변경</label>
                     <label htmlFor="pwd" className="eng">Change Password</label>
                     <br />
-                    <input type="text" className="w-0 h-0 m-0 p-0" id="username" name="username" autoComplete="username" value={account?.id} />
+                    <input type="text" className="w-0 h-0 m-0 p-0" id="username" name="username" autoComplete="username" value={account?.id} readOnly />
                     <input type="password" autoComplete="new-password" id="pwd" value={pwd} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242]" onChange={e => {
                         setPwd(e.currentTarget.value);
                     }} />

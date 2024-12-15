@@ -76,6 +76,22 @@ export default function Home() {
       navigator.serviceWorker.register('/sw.js');
     }
   }, []);
+  useEffect(() => {
+    if (posts.length === 0) return;
+    posts.forEach(post => {
+      fetch(`/post/${post.count}`).catch(() => { }); // cache to service worker
+    });
+    if (account && account.token) {
+      posts.forEach(post => {
+          fetch(`/api/post/${post.count}`, {
+              method: 'GET',
+              headers: {
+                  Authorization: account.token!
+              }
+          }).catch(() => { }); // cache to service worker
+      });
+  }
+  }, [posts, account]);
 
   return (
     <div className="w-[90%] md:w-[700px] md:border md:border-slate-400 md:p-8 md:rounded-lg ml-auto mr-auto">

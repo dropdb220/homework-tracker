@@ -180,7 +180,10 @@ export default function WriteQuestion() {
                                 ),
                                 a: (link) => (
                                     <Link href={link.href || ""} rel="noopener noreferrer" target={(link.href || '').startsWith('#') ? '_top' : "_blank"}>{link.children}</Link>
-                                )
+                                ),
+                                p({ children, ...props }) {
+                                    return <div {...props}>{children}</div>
+                                }
                             }} className="prose dark:prose-invert">{lang == 1 ? questionEn : questionKo}</Markdown>
                     </div>
                     : <textarea rows={30} className="resize-none w-full" value={lang == 1 ? questionEn : questionKo} onChange={e => {

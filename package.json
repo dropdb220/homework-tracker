@@ -20,10 +20,10 @@
     "dotenv": "^16.4.5",
     "mime-types": "^2.1.35",
     "mongodb": "^6.5.0",
-    "next": "14.1.4",
+    "next": "15.1.0",
     "node-fetch": "^3.3.2",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-markdown": "^9.0.1",
     "react-syntax-highlighter": "^15.5.0",
     "rehype-slug": "^6.0.0",
@@ -36,15 +36,19 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.12",
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.2",
     "@types/web-push": "^3.6.3",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
-    "eslint-config-next": "14.1.4",
+    "eslint-config-next": "15.1.0",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   },
-  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
+  "packageManager": "yarn@4.5.3",
+  "resolutions": {
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.2"
+  }
 }

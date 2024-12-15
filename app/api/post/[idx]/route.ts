@@ -5,7 +5,8 @@ import i18n from "@/app/i18n.json";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request, { params }: { params: { idx: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ idx: string }> }) {
+    const params = await props.params;
     let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const client = new MongoClient(process.env.MONGO!);
@@ -44,7 +45,8 @@ export async function GET(request: Request, { params }: { params: { idx: string 
     return new Response(JSON.stringify({ ...post, title: userData.lang == 1 ? (post.title_en === "" ? post.title : post.title_en) : post.title, content: userData.lang == 1 ? (post.content_en === "" ? post.content : post.content_en) : post.content, title_ko: post.title, content_ko: post.content, author: { id: post.author, firstName: user?.firstName, lastName: user?.lastName } }), { status: 200 });
 }
 
-export async function PUT(request: Request, { params }: { params: { idx: string } }) {
+export async function PUT(request: Request, props: { params: Promise<{ idx: string }> }) {
+    const params = await props.params;
     let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const token = request.headers.get('Authorization');
@@ -112,7 +114,8 @@ export async function PUT(request: Request, { params }: { params: { idx: string 
     return new Response(JSON.stringify({ code: 0 }), { status: 200 });
 }
 
-export async function DELETE(request: Request, { params }: { params: { idx: string } }) {
+export async function DELETE(request: Request, props: { params: Promise<{ idx: string }> }) {
+    const params = await props.params;
     let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     const client = new MongoClient(process.env.MONGO!);

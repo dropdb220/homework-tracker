@@ -3,7 +3,8 @@ import { lookup } from 'mime-types';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request, { params }: { params: { fileName: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ fileName: string }> }) {
+    const params = await props.params;
     if (!(await fs.readdir('./upload/image')).includes(params.fileName)) {
         return new Response("Not Found", { status: 404 });
     }

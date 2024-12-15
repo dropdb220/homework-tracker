@@ -3,13 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "usehooks-ts";
 
 import { LSAccount, AccountInfo, permToString, langToString } from "@/app/types";
 
-const OtherAccountInfopage: React.FC<{ params: { userid: string } }> = ({ params }: { params: { userid: string } }) => {
+const OtherAccountInfopage: React.FC<{ params: Promise<{ userid: string }> }> = (props: { params: Promise<{ userid: string }> }) => {
+    const params = use(props.params);
     const router = useRouter();
     const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
     const [isClient, setIsClient] = useState(false);

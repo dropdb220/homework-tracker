@@ -14,7 +14,7 @@ import Dialog from '@/app/dialog';
 
 import { deadlineName, deadlineNameEn, postType, postTypeEn, LSAccount } from "@/app/types";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "usehooks-ts";
 
@@ -71,6 +71,12 @@ function ToDeadLine({ post }: { post: { count: number, title: string, type: numb
 
 function ImageModal({ src, children, className }: { src: string, children: React.ReactNode, className?: string }) {
     const [displayed, setDisplayed] = useState(false);
+
+    useEffect(() => {
+        if (src.startsWith('/') && !src.startsWith('//')) {
+            fetch(src).catch(() => { }); // cache original image to service worker
+        }
+    }, [src]);
 
     return (
         <div className={className}>
@@ -144,7 +150,8 @@ function CopyButton({ content }: { content: string }) {
     )
 }
 
-export default function Post({ params }: { params: { idx: string } }) {
+export default function Post(props: { params: Promise<{ idx: string }> }) {
+    const params = use(props.params);
     const router = useRouter();
 
     const [post, setPost] = useState<{ count: number, title: string, type: number, content: string, deadline?: Date, created: Date, author: { id: string, firstName?: string, lastName?: string } }>({ count: 0, title: '', type: 4, content: '', deadline: undefined, created: new Date(1970, 0, 1, 9, 0, 0), author: { id: '' } });
@@ -154,6 +161,7 @@ export default function Post({ params }: { params: { idx: string } }) {
     const [dialogContent, setDialogContent] = useState<string>('');
     const [showDialog, setShowDialog] = useState<boolean>(false);
     const [dialogCallback, setDialogCallback] = useState<{ callback: (result: boolean) => void }>({ callback: () => { } });
+    const [isOffline, setIsOffline] = useState<boolean>(false);
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
@@ -187,10 +195,42 @@ export default function Post({ params }: { params: { idx: string } }) {
             }
         })
     }, [account, router, setAccount]);
+    useEffect(() => {
+        fetch(`/post/${params.idx}`).catch(() => { }) // cache to service worker
+    }, [params.idx]);
+    useEffect(() => {
+        fetch('/api/is_online').then(() => {
+            setIsOffline(false);
+        }).catch(() => {
+            setIsOffline(true);
+        });
+    }, []);
+    useEffect(() => {
+        if (isOffline) {
+            const interval = setInterval(() => {
+                fetch('/api/is_online').then(() => {
+                    fetch(`/api/account?id=${account?.id}`).then(res => {
+                        if (!res.ok) {
+                            setAccount(null);
+                            router.replace('/login/id');
+                        } else {
+                            res.json().then(data => {
+                                setPerm(data.data.perm);
+                            })
+                        }
+                    });
+                    setIsOffline(false);
+                }).catch(() => {
+                    setIsOffline(true);
+                });
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [isOffline, account, router, setAccount]);
 
 
     return (
-        <div className="w-full lg:w-[80%] md:grid md:grid-cols-2 md:gap-2 ml-auto mr-auto">
+        (<div className="w-full lg:w-[80%] md:grid md:grid-cols-2 md:gap-2 ml-auto mr-auto">
             <div className="mb-4 lg:mt-24 max-md:border-b-slate-400 max-md:border-b md:mr-8">
                 <div className="grid grid-cols-[auto_auto_1fr]">
                     <h1 className="text-4xl">{post.title}</h1>
@@ -221,14 +261,14 @@ export default function Post({ params }: { params: { idx: string } }) {
                                 const match = /language-(\w+)/.exec(className || "");
                                 return !inline && match ? (
                                     // @ts-ignore
-                                    <SyntaxHighlighter
+                                    (<SyntaxHighlighter
                                         language={match[1]}
                                         PreTag="div"
                                         {...props}
                                         style={materialDark}
                                     >
                                         {String(children).replace(/\n$/, "")}
-                                    </SyntaxHighlighter>
+                                    </SyntaxHighlighter>)
                                 ) : (
                                     <code {...props}>{children}</code>
                                 );
@@ -259,12 +299,15 @@ export default function Post({ params }: { params: { idx: string } }) {
                             ),
                             a: (link) => (
                                 <Link href={link.href || ""} rel="noopener noreferrer" target={(link.href || '').startsWith('#') ? '_top' : "_blank"}>{link.children}</Link>
-                            )
+                            ),
+                            p({ children, ...props }) {
+                                return <div {...props}>{children}</div>
+                            }
                         }} className="prose dark:prose-invert">{post.content}</Markdown>
                     <br />
                 </div>
                 <br />
-                {(perm <= 1 || account?.id === post.author.id) &&
+                {((perm <= 1 || account?.id === post.author.id) && !isOffline) &&
                     <>
                         <Link href={`/write/${params.idx}`}>
                             <button className="ml-[40%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">
@@ -281,6 +324,8 @@ export default function Post({ params }: { params: { idx: string } }) {
                             }).then(response => {
                                 if (response.ok) router.push('/');
                                 else alert(deviceLang === 1 ? "Failed to delete." : '삭제에 실패했습니다.');
+                            }).catch(() => {
+                                alert(deviceLang === 1 ? "Failed to delete." : '삭제에 실패했습니다.');
                             })
                         }}>
                             <span className="kor">삭제</span>
@@ -290,6 +335,6 @@ export default function Post({ params }: { params: { idx: string } }) {
                 }
                 {showDialog && <Dialog title={dialogTtile} content={dialogContent} type={dialogType} setShowDialog={setShowDialog} callback={dialogCallback.callback} />}
             </div>
-        </div>
+        </div>)
     );
 }
