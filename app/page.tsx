@@ -223,7 +223,7 @@ export default function Home() {
                   }
                   setDialogTitle(deviceLang === 1 ? "Timetable" : '시간표');
                   setDialogType('alert');
-                  setDialogContent(todayTimetable.map((x: { subject: string, teacher: string, prevData?: { subject: string, teacher: string } }, idx: number) => `${deviceLang === 1 && "Period #"}${idx + 1}${deviceLang === 0 && "교시"}: ${x.subject}(${x.teacher} ${deviceLang === 1 ? "Teacher" : "교사"})${x.prevData ? ` (${deviceLang === 1 ? "Before Change" : "변경 전"}: ${x.prevData.subject === '' ? (deviceLang === 1 ? "No Class" : "수업 없음") : `${x.prevData.subject}(${x.prevData.teacher} ${deviceLang === 1 ? "Teacher" : "교사"})`})` : ''}`).join('\n'));
+                  setDialogContent(todayTimetable.map((x: { subject: string, teacher: string, prevData?: { subject: string, teacher: string } }, idx: number) => `${deviceLang === 1 ? "Period #" : ''}${idx + 1}${deviceLang === 0 ? "교시" : ''}: ${x.subject}(${x.teacher} ${deviceLang === 1 ? "Teacher" : "교사"})${x.prevData ? ` (${deviceLang === 1 ? "Before Change" : "변경 전"}: ${x.prevData.subject === '' ? (deviceLang === 1 ? "No Class" : "수업 없음") : `${x.prevData.subject}(${x.prevData.teacher} ${deviceLang === 1 ? "Teacher" : "교사"})`})` : ''}`).join('\n'));
                   setDialogOpen(true);
                 });
               }
