@@ -62,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" style={{ fontFamily: `${LilitaOne.style.fontFamily}, -apple-system, BlinkMacSystemFont, Apple SD Gothic Neo, Malgun Gothic, sans-serif;` }}>
+    <html lang="ko" style={{ fontFamily: `${LilitaOne.style.fontFamily}, ${Pretendard.style.fontFamily}, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;` }}>
       <body>
         <Header />
         <main className="w-[90%] mt-4 ml-auto mr-auto">
