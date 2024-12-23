@@ -89,7 +89,7 @@ const OtherAccountInfopage: React.FC<{ params: Promise<{ userid: string }> }> = 
                         <Image src="/back.svg" alt="Back" height={36} width={36} className="relative mt-[.125rem] dark:invert w-9 h-9 eng" />
                     </button>
                     <h1 className="text-3xl ml-4 kor">계정 정보</h1>
-                    <h1 className="text-3xl ml-4 eng">Account Info</h1>
+                    <h1 className="text-3xl ml-4 eng">Account Details</h1>
                     <div></div>
                 </div>
                 <br />
