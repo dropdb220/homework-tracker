@@ -83,14 +83,14 @@ export default function Home() {
     });
     if (account && account.token) {
       posts.forEach(post => {
-          fetch(`/api/post/${post.count}`, {
-              method: 'GET',
-              headers: {
-                  Authorization: account.token!
-              }
-          }).catch(() => { }); // cache to service worker
+        fetch(`/api/post/${post.count}`, {
+          method: 'GET',
+          headers: {
+            Authorization: account.token!
+          }
+        }).catch(() => { }); // cache to service worker
       });
-  }
+    }
   }, [posts, account]);
 
   return (
@@ -205,7 +205,12 @@ export default function Home() {
           <br />
           <br />
           <button className="w-1/2 border-r border-r-slate-400 text-center" onClick={(() => {
-            fetch('/api/timetable').then(async r => {
+            fetch('/api/timetable', {
+              method: 'GET',
+              headers: {
+                'X-Lang': deviceLang.toString()
+              }
+            }).then(async r => {
               if (r.status === 500) {
                 setDialogTitle(deviceLang === 1 ? "Comcigan Setup Required" : '컴시간 설정 필요');
                 setDialogType('alert');
@@ -233,7 +238,12 @@ export default function Home() {
             <span className="eng">Timetable</span>
           </button>
           <button className="w-1/2 text-center" onClick={(() => {
-            fetch('/api/meal').then(async r => {
+            fetch('/api/meal', {
+              method: 'GET',
+              headers: {
+                'X-Lang': deviceLang.toString()
+              }
+            }).then(async r => {
               if (r.status === 500) {
                 setDialogTitle(deviceLang === 1 ? "Meal Info Setup Required" : '급식 정보 설정 필요');
                 setDialogType('alert');
