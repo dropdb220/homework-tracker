@@ -102,7 +102,7 @@ const OtherAccountEditpage: React.FC<{ params: Promise<{ userid: string }> }> = 
                             router.back();
                         }}><Image src="/back.svg" alt="뒤로가기" height={36} width={36} className="relative mt-[.125rem] dark:invert w-9 h-9" /></button>
                         <h1 className="text-3xl ml-4 kor">계정 정보 수정하기</h1>
-                        <h1 className="text-3xl ml-4 end">Edit Account Details</h1>
+                        <h1 className="text-3xl ml-4 eng">Edit Account Details</h1>
                         <div></div>
                     </div>
                     <br />

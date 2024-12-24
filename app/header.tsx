@@ -77,8 +77,10 @@ export default function Header() {
             }
             <header className={`sticky w-full grid grid-cols-[auto_1fr_auto${(process.env.NEXT_PUBLIC_QNA_ENABLED == '1' && account && account.token && isValidToken) ? '_auto' : ''}] p-4 h-24`}>
                 <Link href="/" className="grid grid-cols-[auto_auto]">
-                    <Image src="/icon3.png" alt={process.env.NEXT_PUBLIC_TITLE || '숙제 트래커'} width={48} height={48} className="h-12 w-12 kor" />
-                    <Image src="/icon3.png" alt={process.env.NEXT_PUBLIC_TITLE_EN || process.env.NEXT_PUBLIC_TITLE || 'Homework Tracker'} width={48} height={48} className="h-12 w-12 eng" />
+                    {/*eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/icon3.png" alt={process.env.NEXT_PUBLIC_TITLE || '숙제 트래커'} width={48} height={48} className="h-12 w-12 kor" />
+                    {/*eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/icon3.png" alt={process.env.NEXT_PUBLIC_TITLE_EN || process.env.NEXT_PUBLIC_TITLE || 'Homework Tracker'} width={48} height={48} className="h-12 w-12 eng" />
                     <div className="grid grid-rows-[1fr_auto_1fr] h-12">
                         <div></div>
                         <span className="kor ml-2 text-3xl font-semibold">{process.env.NEXT_PUBLIC_TITLE || '숙제 트래커'}</span>
@@ -94,12 +96,16 @@ export default function Header() {
                             setShowUtilMenu(!showUtilMenu);
                             e.preventDefault();
                         }}>
-                            <Image src="/menu.svg" alt="메뉴" width={36} height={36} className="kor dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
-                            <Image src="/menu.svg" alt="Menu" width={36} height={36} className="eng dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
+            {/*eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/menu.svg" alt="메뉴" width={36} height={36} className="kor dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
+                            {/*eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/menu.svg" alt="Menu" width={36} height={36} className="eng dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
                         </button>
                         <Link href="/account" className="hidden md:inline">
-                            <Image src="/account.svg" alt="계정" width={36} height={36} className="kor dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
-                            <Image src="/account.svg" alt="Account" width={36} height={36} className="eng dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
+                        {/*eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/account.svg" alt="계정" width={36} height={36} className="kor dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
+                            {/*eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/account.svg" alt="Account" width={36} height={36} className="eng dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
                         </Link>
                         {showUtilMenu &&
                             <>
@@ -158,8 +164,10 @@ export default function Header() {
                             </>
                         }
                         <button className="navbar-toggler md:hidden absolute top-0 right-0 mr-8 mt-7" onClick={e => { setShowMobileMenu(!showMobileMenu); }}>
-                            <Image src="/menu.svg" alt="메뉴" width={24} height={24} className="kor dark:invert" />
-                            <Image src="/menu.svg" alt="Menu" width={24} height={24} className="eng dark:invert" />
+                        {/*eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/menu.svg" alt="메뉴" width={24} height={24} className="kor dark:invert" />
+                            {/*eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/menu.svg" alt="Menu" width={24} height={24} className="eng dark:invert" />
                         </button>
                         <div className={`${!showMobileMenu && "hidden"} fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 md:hidden z-40`} onClick={e => { setShowMobileMenu(false); }} />
                         <div className={`${!showMobileMenu && "hidden"} md:hidden h-[90%] fixed right-4 top-11 dark:bg-gray-800 mt-4 border border-gray-300 bg-white dark:border-gray-700 rounded-lg shadow-lg w-[35%] ml-auto mr-0 z-50`}>
@@ -216,8 +224,10 @@ export default function Header() {
                                 <div className="md:hidden" />
                                 <Link href="/account" className="md:hidden w-full" onClick={e => { setShowMobileMenu(false); }}>
                                     <div className="grid grid-cols-[auto_1fr] mt-[-72px]">
-                                        <Image src="/account.svg" alt="계정" width={24} height={24} className="kor w-[24px] h-[24px] dark:invert mr-2 md:hidden" />
-                                        <Image src="/account.svg" alt="Account" width={24} height={24} className="eng w-[24px] h-[24px] dark:invert mr-2 md:hidden" />
+                                    {/*eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src="/account.svg" alt="계정" width={24} height={24} className="kor w-[24px] h-[24px] dark:invert mr-2 md:hidden" />
+                                        {/*eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src="/account.svg" alt="Account" width={24} height={24} className="eng w-[24px] h-[24px] dark:invert mr-2 md:hidden" />
                                         <span className="break-all">{account.id}</span>
                                     </div>
                                 </Link>

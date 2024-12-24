@@ -70,8 +70,10 @@ export default function RootLayout({
         </main>
         <div className="w-full mt-8 mb-8">
           <Link href="https://github.com/dropdb220/homework-tracker" rel="noopener noreferrer" target="_blank">
-            <Image src="/github.svg" alt="소스코드 보기" width={24} height={24} className="kor dark:invert opacity-40 ml-auto mr-auto" />
-            <Image src="/github.svg" alt="View Source" width={24} height={24} className="eng dark:invert opacity-40 ml-auto mr-auto" />
+            {/*eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/github.svg" alt="소스코드 보기" width={24} height={24} className="kor dark:invert opacity-40 ml-auto mr-auto" />
+            {/*eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/github.svg" alt="View Source" width={24} height={24} className="eng dark:invert opacity-40 ml-auto mr-auto" />
           </Link>
         </div>
       </body>
