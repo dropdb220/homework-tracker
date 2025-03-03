@@ -7,7 +7,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "usehooks-ts";
 
-import { LSAccount, AccountInfo, permToString, langToString } from "@/app/types";
+import { LSAccount, AccountInfo, permToString, langToString, AccountFlag } from "@/app/types";
+import _i18n from "@/app/i18n.json";
+const i18n: { [key: string]: string | string[] } = _i18n;
 
 export default function MyAccountInfoPage() {
     const router = useRouter();
@@ -94,15 +96,19 @@ export default function MyAccountInfoPage() {
                 <p className="text-sm eng">Status</p>
                 <p className="text-xl kor">{accountInfo?.accepted ? '승인됨' : '승인되지 않음'}</p>
                 <p className="text-xl eng">{accountInfo?.accepted ? 'Accepted' : 'Not Accepted'}</p>
-                {process.env.NEXT_PUBLIC_QNA_ENABLED == '1' &&
-                    <>
-                        <br />
-                        <p className="text-sm kor">질문 답변자 여부</p>
-                        <p className="text-sm eng">Is Answerer</p>
-                        <p className="text-xl kor">{accountInfo?.answerer ? '가능' : '불가능'}</p>
-                        <p className="text-xl eng">{accountInfo?.answerer ? 'Yes' : 'No'}</p>
-                    </>
-                }
+                <br />
+                <p className="text-sm kor">추가 권한</p>
+                <p className="text-sm eng">Additional Permissions</p>
+                <p className="text-xl kor">
+                    {
+                        accountInfo?.flag === 0 ? '없음' : [1, 2].map((flag) => ((accountInfo?.flag ?? 0) & flag) != 0 ? i18n[`flag${flag}`][0] : '').filter(x => x !== '').join('\n')
+                    }
+                </p>
+                <p className="text-xl eng">
+                    {
+                        accountInfo?.flag === 0 ? 'None' : [1, 2].map((flag) => ((accountInfo?.flag ?? 0) & flag) != 0 ? i18n[`flag${flag}`][1] : '').filter(x => x !== '').join('\n')
+                    }
+                </p>
                 <br />
                 <p className="text-sm">언어{'('}Language{')'}</p>
                 <p className="text-xl">{langToString[accountInfo?.lang ?? 2]}</p>

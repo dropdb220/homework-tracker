@@ -5,7 +5,7 @@ export default function dialog({ title, content, type, setShowDialog, callback }
             <div className={`border border-slate-400 rounded p-8 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#424242] pt-2`}>
                 <br />
                 <div className="mr-2">
-                    <p className={`font-bold text-2xl mr-0 break-keep`}>{title}</p>
+                    <p className={`text-2xl mr-0 break-keep`}>{title}</p>
                 </div>
                 <br />
                 {

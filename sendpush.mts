@@ -38,7 +38,8 @@ if (closestExam) {
                 day: "numeric",
                 timeZone: 'Asia/Seoul'
             })}\n${tomorrow.subjects.map((subj: string, idx: number) => `${idx + 1}교시 ${subj[0]}`).join('\n')}`,
-            tag: 'exam'
+            tag: 'exam',
+            url: '/'
         };
         const dataEn = {
             title: `Exam Subject Notification`,
@@ -49,7 +50,8 @@ if (closestExam) {
                 day: "numeric",
                 timeZone: 'Asia/Seoul'
             })}\n${tomorrow.subjects.map((subj: string, idx: number) => `Period ${idx + 1}: ${subj[1]}`).join('\n')}`,
-            tag: 'exam'
+            tag: 'exam',
+            url: '/'
         };
         userList.forEach(user => {
             user.subscriptions.forEach(async (sub: any) => {
@@ -66,12 +68,14 @@ if (closestCsat) {
     const data = {
         title: `수능/모평/학평 1일 전`,
         body: `${closestCsat.year}년 ${closestCsat.month}월 ${closestCsat.type} 1일 전입니다.`,
-        tag: 'csat'
+        tag: 'csat',
+        url: '/'
     };
     const dataEn = {
         title: `CSAT/Mock CSAT in 1 Day`,
         body: `${closestCsat.year}/${closestCsat.month} ${closestCsat.type_en} is tomorrow.`,
-        tag: 'csat'
+        tag: 'csat',
+        url: '/'
     };
     userList.forEach(user => {
         user.subscriptions.forEach(async (sub: any) => {
@@ -96,19 +100,21 @@ const dataEn = twoDaysLeft.map(post => {
     return {
         title: `${postTypeEn[post.type]} ${deadlineNameEn[post.type]} in 2 Days`,
         body: `${post.title_en === "" ? post.title : post.title_en} ${deadlineNameEn[post.type]} is in 2 days.`,
-        tag: post.count.toString()
+        tag: post.count.toString(),
+        url: `/post/${post.count}`
     }
 }).concat(oneDayLeft.map(post => {
     return {
         title: `${postTypeEn[post.type]} ${deadlineNameEn[post.type]} in 1 Day`,
         body: `${post.title_en === "" ? post.title : post.title_en} ${deadlineNameEn[post.type]} is tomorrow.`,
-        tag: post.count.toString()
+        tag: post.count.toString(),
+        url: `/post/${post.count}`
     }
 }));
 if (data.length > 0) {
     userList.forEach(user => {
         user.subscriptions.forEach(async (sub: any) => {
-            sendNotification(sub, JSON.stringify(data)).catch(() => { })
+            sendNotification(sub, JSON.stringify(user.lang === 1 ? dataEn : data)).catch(() => { })
         });
     });
 }

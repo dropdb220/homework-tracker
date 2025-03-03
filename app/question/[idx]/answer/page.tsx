@@ -11,7 +11,7 @@ import { materialDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import Image from "next/image";
 import Link from "next/link";
 
-import { LSAccount } from "@/app/types";
+import { AccountFlag, LSAccount } from "@/app/types";
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
@@ -70,7 +70,7 @@ export default function WriteAnswer(props: { params: Promise<{ idx: string }> })
                 router.replace('/');
             } else {
                 response.json().then(data => {
-                    if (!data.data.answerer) router.replace(`/question/${params.idx}`);
+                    if (!(data.data.flag & AccountFlag.answerer)) router.replace(`/question/${params.idx}`);
                 });
             }
         }).catch(() => {

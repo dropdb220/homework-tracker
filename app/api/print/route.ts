@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { MongoClient } from "mongodb";
 import { sendNotification, setVapidDetails } from "web-push";
 import i18n from "@/app/i18n.json";
-import { AccountFlag } from "@/app/types";
+import { AccountFlag, PrintStatus } from "@/app/types";
 
 export const dynamic = 'force-dynamic';
 
@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.notApproved[clientLang] }), { status: 403 });
     }
-    const questionsCollection = db.collection('questions');
-    const questions = (((userData.flag & AccountFlag.answerer) || userData.perm === 0) ? (await questionsCollection.find().toArray()) : (await questionsCollection.find({ "$or": [{ user }, { public: true }] }).toArray())).sort((a, b) => b.created.getTime() - a.created.getTime()).map((x: any) => { return { ...x, title: userData.lang == 1 ? (x.title_en === "" ? x.title : x.title_en) : x.title } })
+    const printsCollection = db.collection('prints');
+    const prints = (((userData.flags & AccountFlag.printer) || userData.perm === 0) ? (await printsCollection.find().toArray()) : (await printsCollection.find({ user }).toArray())).sort((a, b) => b.created.getTime() - a.created.getTime()).map((x: any) => { return { ...x, title: userData.lang == 1 ? (x.title_en === "" ? x.title : x.title_en) : x.title } })
     client.close();
-    return new Response(JSON.stringify({ questions }), { status: 200 });
+    return new Response(JSON.stringify({ prints: prints }), { status: 200 });
 }
 
 export async function POST(request: Request) {
@@ -71,32 +71,31 @@ export async function POST(request: Request) {
         return new Response(JSON.stringify({ code: 1, msg: i18n.notApproved[clientLang] }), { status: 403 });
     }
     const data = await request.json();
-    const questionsCollection = db.collection('questions');
-    const prevQuestions = await questionsCollection.find().toArray();
-    const question = {
-        idx: prevQuestions.length === 0 ? 1 : prevQuestions.sort((a, b) => b.idx - a.idx)[0].idx + 1,
+    const printsCollection = db.collection('prints');
+    const prevPrints = await printsCollection.find().toArray();
+    const print = {
+        idx: prevPrints.length === 0 ? 1 : prevPrints.sort((a, b) => b.idx - a.idx)[0].idx + 1,
         user,
         title: data.title,
         title_en: data.title_en,
-        public: data.public,
-        question: data.question,
-        question_en: data.question_en,
-        solved: false,
+        comment: data.comment,
+        comment_en: data.comment_en,
+        status: PrintStatus.pending,
         created: new Date()
     };
-    await questionsCollection.insertOne(question);
+    await printsCollection.insertOne(print);
     client.close();
     setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
-    const answerers = await usersCollection.find({ flag: { $bitsAllSet: 1 } }).toArray();
-    answerers.forEach(async (answerer) => {
-        answerer.subscriptions.forEach(async (sub: any) => {
+    const printers = await usersCollection.find({ flag: { $bitsAllSet: 2 } }).toArray();
+    printers.forEach(async (printer) => {
+        printer.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify([{
-                title: answerer.lang == 1 ? 'New Question' : '질문 등록됨',
-                body: answerer.lang == 1 ? `A new question ${question.title_en === "" ? question.title : question.title_en} was posted just now.` : `${question.title}이(가) 등록되었습니다.`,
-                tag: question.idx.toString(),
-                url: `/question/${question.idx}`
+                title: printer.lang == 1 ? 'New Print Request' : '인쇄 요청 등록됨',
+                body: printer.lang == 1 ? `A new print request ${print.title_en === "" ? print.title : print.title_en} was created just now.` : `${print.title}이(가) 등록되었습니다.`,
+                tag: print.idx.toString(),
+                url: `/print/${print.idx}`
             }])).catch(() => { });
         });
     });
-    return new Response(JSON.stringify({ code: 0, idx: question.idx }), { status: 200 });
+    return new Response(JSON.stringify({ code: 0, idx: print.idx }), { status: 200 });
 }

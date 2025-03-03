@@ -30,7 +30,7 @@ export async function GET(request: Request) {
                 perm: user.perm,
                 accepted: user.accepted,
                 allergy: user.allergy,
-                answerer: user.answerer,
+                flag: user.flag,
                 lang: user.lang,
                 discordConnected: user.discordConnected,
                 discordID: user.discordID
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.existingID[clientLang] }), { status: 400 });
     }
-    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], answerer: false, lang: clientLang, discordConnected: false });
+    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], flag: 0, lang: clientLang, discordConnected: false });
     let token = '';
     for (let i = 0; i < 64; i++) {
         token += Math.floor(Math.random() * 16).toString(16);
@@ -89,7 +89,8 @@ export async function POST(request: Request) {
             sendNotification(sub, JSON.stringify([{
                 title: user.lang == 1 ? 'Account Created' : `계정 생성됨`,
                 body: user.lang == 1 ? `A new account with ID ${id} was created just now.` : `${id} 계정이 생성되었습니다.`,
-                tag: id
+                tag: id,
+                url: `/account/${id}`
             }])).catch(() => { });
         });
     });
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
     let clientLang = !isNaN(Number(request.headers.get('X-Lang') || undefined)) ? Number(request.headers.get('X-Lang')) : request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
     if (clientLang !== 0 && clientLang !== 1) clientLang = request.headers.get('Accept-Language')?.startsWith("en") ? 1 : 0;
-    const { id, pwd, firstName, lastName, perm, accepted, allergy, answerer, lang } = await request.json();
+    const { id, pwd, firstName, lastName, perm, accepted, allergy, addFlags, removeFlags, lang } = await request.json();
     const token = request.headers.get('Authorization');
     if (!token) {
         return new Response(JSON.stringify({ code: 1, msg: i18n.loginRequired[clientLang] }), { status: 401 });
@@ -128,12 +129,12 @@ export async function PUT(request: Request) {
             break;
         case 1:
             if (loginedUser!.id === id) {
-                if (perm != null || firstName != null || lastName != null || accepted != null || answerer != null) {
+                if (perm != null || firstName != null || lastName != null || accepted != null || addFlags != null || removeFlags != null) {
                     client.close();
                     return new Response(JSON.stringify({ code: 1, msg: i18n.permError1[clientLang] }), { status: 403 });
                 }
             } else {
-                if (perm != null || pwd != null || allergy != null || answerer != null) {
+                if (perm != null || pwd != null || allergy != null || addFlags != null || removeFlags != null) {
                     client.close();
                     return new Response(JSON.stringify({ code: 1, msg: i18n.permError2[clientLang] }), { status: 403 });
                 }
@@ -141,7 +142,7 @@ export async function PUT(request: Request) {
             break;
         case 2:
             if (loginedUser!.id === id) {
-                if (perm != null || firstName != null || lastName != null || accepted != null || answerer != null) {
+                if (perm != null || firstName != null || lastName != null || accepted != null || addFlags != null || removeFlags != null) {
                     client.close();
                     return new Response(JSON.stringify({ code: 1, msg: i18n.permError1[clientLang] }), { status: 403 });
                 }
@@ -164,7 +165,7 @@ export async function PUT(request: Request) {
             client.close();
             return new Response(JSON.stringify({ code: 1, msg: i18n.permError4[clientLang] }), { status: 403 });
         }
-        if ((pwd && typeof pwd !== 'string') || (firstName && typeof firstName !== 'string') || (lastName && typeof lastName !== 'string') || (perm != null && typeof perm !== 'number') || (accepted != null && typeof accepted !== 'boolean') || (allergy && !Array.isArray(allergy)) || (answerer != null && typeof answerer !== 'boolean')) {
+        if ((pwd && typeof pwd !== 'string') || (firstName && typeof firstName !== 'string') || (lastName && typeof lastName !== 'string') || (perm != null && typeof perm !== 'number') || (accepted != null && typeof accepted !== 'boolean') || (allergy && !Array.isArray(allergy)) || (addFlags != null && typeof addFlags !== 'number') || (removeFlags != null && typeof removeFlags !== 'number')) {
             client.close();
             return new Response(JSON.stringify({ code: 1, msg: i18n.malformed[clientLang] }), { status: 400 });
         }
@@ -202,9 +203,14 @@ export async function PUT(request: Request) {
         if (allergy != null && Array.isArray(allergy)) {
             Object.assign(updateList.$set, { allergy });
         }
-        if (answerer != null && typeof answerer === 'boolean') {
-            Object.assign(updateList.$set, { answerer });
+        let flag = user.flag;
+        if (addFlags != null && typeof addFlags === 'number') {
+            flag |= addFlags;
         }
+        if (removeFlags != null && typeof removeFlags === 'number') {
+            flag &= ~removeFlags;
+        }
+        Object.assign(updateList.$set, { flag });
         if (lang != null && typeof lang === 'number') {
             Object.assign(updateList.$set, { lang });
         }

@@ -24,14 +24,25 @@ export enum Lang {
     en = 1
 }
 
+export enum PrintStatus {
+    pending = 0,
+    completed = 1,
+    rejected = 2
+}
+
 export type AccountInfo = {
     id: string;
     firstName: string;
     lastName: string;
     perm: Perm;
     accepted: boolean;
-    answerer: boolean;
+    flag: number;
     lang: Lang;
+}
+
+export enum AccountFlag {
+    answerer = 1,
+    printer = 2
 }
 
 export const permToString = ['root', 'admin', 'user', ''];

@@ -119,6 +119,14 @@ export default function Header() {
                                             </button>
                                         </Link>
                                     }
+                                    {process.env.NEXT_PUBLIC_PRINT_ENABLED == '1' &&
+                                        <Link href="/print">
+                                            <button className="p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowUtilMenu(false); }}>
+                                                <span className="kor">인쇄 요청</span>
+                                                <span className="eng">Print Request</span>
+                                            </button>
+                                        </Link>
+                                    }
                                     <button className={`text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring ${isUnlockingPDF && 'text-gray-400'}`} disabled={isUnlockingPDF} onClick={e => {
                                         const file = document.createElement('input');
                                         file.type = 'file';
@@ -177,6 +185,14 @@ export default function Header() {
                                         <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowMobileMenu(false); }}>
                                             <span className="kor">질문 게시판</span>
                                             <span className="eng">Q&A</span>
+                                        </button>
+                                    </Link>
+                                }
+                                {process.env.NEXT_PUBLIC_PRINT_ENABLED == '1' && account && account.token && isValidToken &&
+                                    <Link href="/print">
+                                        <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowMobileMenu(false); }}>
+                                            <span className="kor">인쇄 요청</span>
+                                            <span className="eng">Print Request</span>
                                         </button>
                                     </Link>
                                 }

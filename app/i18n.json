@@ -21,6 +21,8 @@
     "permError2": ["권한, 비밀번호, 알러지 정보, 또는 질문 답변자 여부를 수정하려면 root 권한이 필요합니다.", "To modify permission, password, allergy information, or answerer flag, root permission is required."],
     "permError3": ["다른 사용자의 정보를 수정하려면 root 권한이 필요합니다.", "To modify other users' information, root permission is required."],
     "permError4": ["관리자 이상의 권한을 가진 사용자의 정보를 수정하려면 root 권한이 필요합니다.", "To modify users with admin or higher permission, root permission is required."],
+    "flag1": ["질문 답변 가능", "Can Answer Questions"],
+    "flag2": ["인쇄 가능", "Can Print"],
 
     "#comment3": "Passkey related strings",
     "noPasskey": ["패스키 정보가 필요합니다.", "Passkey information is required."],
@@ -59,7 +61,16 @@
     "notAnswererEdit": ["지정된 답변자만 답변을 수정할 수 있습니다.", "Only the designated answerers can edit answers."],
     "notAnswererDelete": ["지정된 답변자만 답변을 삭제할 수 있습니다.", "Only the designated answerers can delete answers."],
 
-    "#comment8": "File related strings",
+    "#comment8": "Print related strings",
+    "printStat0": ["대기", "Pending"],
+    "printStat1": ["완료", "Completed"],
+    "printStat2": ["거부", "Rejected"],
+    "notPrinter": ["지정된 인쇄자만 거부할 수 있습니다.", "Only the designated printers can reject."],
+    "notPrinterAccept": ["지정된 인쇄자만 수락 및 인쇄할 수 있습니다.", "Only the designated printers can accept and print."],
+    "notPrinterEdit": ["지정된 인쇄자만 거부 사유를 수정할 수 있습니다.", "Only the designated printers can edit rejection reason."],
+    "notPrinterDelete": ["지정된 인쇄자만 거부 사유를 삭제할 수 있습니다.", "Only the designated printers can delete rejection reason."],
+
+    "#comment9": "File related strings",
     "noFile": "파일을 첨부하세요.",
     "fileTooLargeA": ["", "The file size should be less than "],
     "fileTooLargeB": ["MiB 이하의 파일만 업로드할 수 있습니다.", "MiB."],
@@ -67,7 +78,7 @@
     "PDFOnly": ["PDF 파일만 업로드할 수 있습니다.", "Only PDF files can be uploaded."],
     "PDFUnlockFailed": ["PDF 파일 잠금 해제에 실패했습니다. PDF에 파일 열기 비밀번호가 설정되어 있는지 확인하세요.", "Failed to unlock PDF. Make sure the PDF doesn't have an user password(the one required to open PDF)."],
 
-    "#comment9": "Miscellaneous strings",
+    "#comment10": "Miscellaneous strings",
     "malformed": ["입력한 정보가 올바르지 않습니다.", "The information you entered is malformed."],
     "invalidAccess": ["유효하지 않은 접근입니다.", "Invalid access."],
     "unknown": ["알 수 없는 오류가 발생했습니다.", "An unknown error occurred."]

@@ -7,7 +7,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "usehooks-ts";
 
-import { LSAccount } from "@/app/types";
+import { AccountFlag, LSAccount } from "@/app/types";
+import _i18n from "@/app/i18n.json";
+const i18n: { [key: string]: string | string[] } = _i18n;
 
 export default function MyAccountEditpage() {
     const router = useRouter();
@@ -18,7 +20,7 @@ export default function MyAccountEditpage() {
     const [perm, setPerm] = useState(2);
     const [isAccepted, setIsAccepted] = useState(false);
     const [allergy, setAllergy] = useState<Array<number>>([]);
-    const [answerer, setAnswerer] = useState(false);
+    const [flag, setFlag] = useState(0);
     const [lang, setLang] = useState(0);
     const [discordConnected, setDiscordConnected] = useState(false);
     const [discordID, setDiscordID] = useState('');
@@ -43,7 +45,7 @@ export default function MyAccountEditpage() {
                     setPerm(data.perm);
                     setIsAccepted(data.accepted || false);
                     setAllergy(data.allergy || []);
-                    setAnswerer(data.answerer || false);
+                    setFlag(data.flag);
                     setLang(data.lang);
                     setDiscordConnected(data.discordConnected || false);
                     setDiscordID(data.discordID || '');
@@ -329,39 +331,43 @@ export default function MyAccountEditpage() {
                     <span className="text-xl eng">{isAccepted ? 'Accepted' : 'Not Accepted'}</span>
                     <br />
                     <br />
-                    {process.env.NEXT_PUBLIC_QNA_ENABLED == '1' &&
-                        <>
-                            <label htmlFor="answerer" className="kor">질문 답변자 여부</label>
-                            <label htmlFor="answerer" className="eng">Is Answerer</label>
-                            <br />
-                            <input type="checkbox" id="answerer" checked={answerer} disabled={perm !== 0} className="mr-2 h-5 mt-1 mb-1" onChange={e => {
-                                setAnswerer(e.currentTarget.checked);
-                                setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');
-                                fetch('/api/account', {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json', Authorization: account!.token! },
-                                    body: JSON.stringify({
-                                        id: account?.id,
-                                        answerer: e.currentTarget.checked
-                                    })
-                                }).then(async res => {
-                                    if (res.ok) {
-                                        setSaveState(deviceLang === 1 ? 'Saved' : '저장됨');
-                                    } else {
+                    <p className="text-sm kor">추가 권한</p>
+                    <p className="text-sm eng">Additional Permissions</p>
+                    {
+                        [1, 2].map((currentFlag) => (
+                            <div key={currentFlag}>
+                                <input type="checkbox" id={`flag${currentFlag}`} checked={(flag & currentFlag) !== 0} disabled={perm !== 0} className="mr-2 h-5 mt-1 mb-1" onChange={e => {
+                                    if (e.currentTarget.checked) setFlag(currentFlag | flag);
+                                    else setFlag(~currentFlag & flag);
+                                    setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');
+                                    fetch('/api/account', {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json', Authorization: account!.token! },
+                                        body: JSON.stringify({
+                                            id: account?.id,
+                                            addFlags: e.currentTarget.checked ? currentFlag : 0,
+                                            removeFlags: e.currentTarget.checked ? 0 : currentFlag
+                                        })
+                                    }).then(async res => {
+                                        if (res.ok) {
+                                            setSaveState(deviceLang === 1 ? 'Saved' : '저장됨');
+                                        } else {
+                                            setSaveState(deviceLang === 1 ? 'Failed to Save' : '저장 실패');
+                                            setSaveErrorMsg((await res.json()).msg);
+                                        }
+                                    }).catch(() => {
                                         setSaveState(deviceLang === 1 ? 'Failed to Save' : '저장 실패');
-                                        setSaveErrorMsg((await res.json()).msg);
-                                    }
-                                }).catch(() => {
-                                    setSaveState(deviceLang === 1 ? 'Failed to Save' : '저장 실패');
-                                    setSaveErrorMsg(deviceLang === 1 ? 'You\'re Offline' : '오프라인 상태');
-                                });
-                            }} />
-                            <span className="text-xl kor">{answerer ? '가능' : '불가능'}</span>
-                            <span className="text-xl eng">{answerer ? 'Yes' : 'No'}</span>
-                            <br />
-                            <br />
-                        </>
+                                        setSaveErrorMsg(deviceLang === 1 ? 'You\'re Offline' : '오프라인 상태');
+                                    });
+                                }} />
+                                <span className="text-xl kor">{i18n[`flag${currentFlag}`][0]}</span>
+                                <span className="text-xl eng">{i18n[`flag${currentFlag}`][1]}</span>
+                                <br />
+                            </div>
+                        ))
+
                     }
+                    <br />
                     <label htmlFor="lang">언어{'('}Language{')'}</label>
                     <br />
                     <select value={lang} id="lang" className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-[100%] dark:bg-[#424242]" onChange={e => {

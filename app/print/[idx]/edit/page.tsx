@@ -11,7 +11,7 @@ import { materialDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import Image from "next/image";
 import Link from "next/link";
 
-import { AccountFlag, LSAccount } from "@/app/types";
+import { LSAccount } from "@/app/types";
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
@@ -42,13 +42,14 @@ function ImageModal({ src, children, className }: { src: string, children: React
     );
 }
 
-export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }) {
+export default function UpdatePrintReq(props: { params: Promise<{ idx: string }> }) {
     const params = use(props.params);
     const router = useRouter();
 
-    const [title, setTitle] = useState('');
-    const [answerKo, setAnswerKo] = useState('');
-    const [answerEn, setAnswerEn] = useState('');
+    const [titleKo, setTitleKo] = useState('');
+    const [titleEn, setTitleEn] = useState('');
+    const [commentKo, setCommentKo] = useState('');
+    const [commentEn, setCommentEn] = useState('');
     const [lang, setLang] = useState(0);
     const [errorMsg, setErrorMsg] = useState<string>('');
     const [preview, setPreview] = useState(false);
@@ -60,7 +61,7 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
 
     useEffect(() => {
         if (!account || !account.token) router.replace('/');
-        else fetch(`/api/question/${params.idx}`, {
+        else fetch(`/api/print/${params.idx}`, {
             method: 'GET',
             headers: {
                 Authorization: account.token
@@ -70,37 +71,16 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                 router.replace('/');
             } else {
                 response.json().then(data => {
-                    if (!data.solved) router.replace(`/question/${params.idx}/answer`);
-                    else {
-                        setTitle(data.title);
-                        setAnswerKo(data.answer_ko);
-                        setAnswerEn(data.answer_en);
-                    }
+                    setTitleKo(data.title_ko);
+                    setTitleEn(data.title_en);
+                    setCommentKo(data.comment_ko);
+                    setCommentEn(data.comment_en);
                 });
             }
         }).catch(() => {
             setIsOffline(true);
         })
     }, [params.idx, router, account]);
-    useEffect(() => {
-        if (!account || !account.token) router.replace('/');
-        else fetch(`/api/account?id=${account.id}`, {
-            method: 'GET',
-            headers: {
-                Authorization: account.token
-            }
-        }).then(response => {
-            if (!response.ok) {
-                router.replace('/');
-            } else {
-                response.json().then(data => {
-                    if (!(data.data.flag & AccountFlag.answerer)) router.replace(`/question/${params.idx}`);
-                });
-            }
-        }).catch(() => {
-            setIsOffline(true);
-        });
-    }, [router, account, params.idx]);
     useEffect(() => {
         fetch('/api/is_online').then(() => {
             setIsOffline(false);
@@ -123,10 +103,11 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
 
     return (<>
         <div className="border-b-slate-400 border-b">
-            <p className="eng">Editing the answer for question</p>
-            <h1 className="text-4xl font-bold">{title}</h1>
-            <p className="kor">에 대한 답변 수정 중</p>
-            <br />
+            <input type="text" autoFocus id="title" placeholder="제목" className="border border-slate-400 text-4xl rounded-lg p-4 w-[100%] dark:bg-[#424242]" value={lang == 1 ? titleEn : titleKo} onChange={e => {
+                if (lang == 1) setTitleEn(e.currentTarget.value);
+                else setTitleKo(e.currentTarget.value);
+            }} />
+            <br /><br />
         </div>
         <div>
             <br />
@@ -136,8 +117,10 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
             <input type="checkbox" defaultChecked={false} id="preview" className="mr-2 h-4 w-4" onChange={e => {
                 setPreview(e.currentTarget.checked);
             }} />
-            <label htmlFor="preview" className="ml-2 kor">미리보기</label>
-            <label htmlFor="preview" className="ml-2 eng">Preview</label>
+            <label htmlFor="preview" className="ml-2">
+                <span className="kor">미리보기</span>
+                <span className="eng">Preview</span>
+            </label>
             <br />
             <label htmlFor="lang">언어{'('}Language{')'}: </label>
             <input type="radio" name="lang" id="lang_ko" className="ml-2 mr-2 h-4 w-4" onClick={() => { setLang(0); }} defaultChecked />한국어
@@ -197,11 +180,11 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                             p({ children, ...props }) {
                                 return <div {...props}>{children}</div>
                             }
-                        }} className="prose dark:prose-invert">{lang == 1 ? answerEn : answerKo}</Markdown>
+                        }} className="prose dark:prose-invert">{lang == 1 ? commentEn : commentKo}</Markdown>
                 </div>
-                : <textarea rows={30} className="resize-none w-full" value={lang == 1 ? answerEn : answerKo} onChange={e => {
-                    if (lang == 1) setAnswerEn(e.currentTarget.value);
-                    else setAnswerKo(e.currentTarget.value);
+                : <textarea rows={30} className="resize-none w-full" value={lang == 1 ? commentEn : commentKo} onChange={e => {
+                    if (lang == 1) setCommentEn(e.currentTarget.value);
+                    else setCommentKo(e.currentTarget.value);
                 }}></textarea>}
         </div>
         <br />
@@ -231,8 +214,8 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                 e.target.value = '';
                 if (response.ok) {
                     response.json().then(data => {
-                        setAnswerKo(answerKo + `${answerKo === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
-                        setAnswerEn(answerEn + `${answerEn === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[Enter file description](${data.path})`)
+                        setCommentKo(commentKo + `${commentKo === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
+                        setCommentEn(commentEn + `${commentEn === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[Enter file description](${data.path})`)
                     })
                 } else {
                     if (response.status === 413) {
@@ -246,23 +229,25 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                 }
             });
         }} />
-        <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={title === '' || answerKo === '' || isOffline} onClick={e => {
+        <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={titleKo === '' || commentKo === '' || isOffline} onClick={e => {
             e.preventDefault();
             const target = e.currentTarget;
             target.disabled = true;
-            if (!title || !answerKo) return;
-            fetch(`/api/question/${params.idx}/answer`, {
+            if (!titleKo || !commentKo) return;
+            fetch(`/api/print/${params.idx}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: account!.token!
                 },
                 body: JSON.stringify({
-                    answer: answerKo,
-                    answer_en: answerEn
+                    title: titleKo,
+                    title_en: titleEn,
+                    comment: commentKo,
+                    comment_en: commentEn
                 })
             }).then(response => {
-                if (response.ok) router.push(`/question/${params.idx}`);
+                if (response.ok) router.push(`/print/${params.idx}`);
                 else {
                     target.disabled = false;
                     response.json().then(data2 => {

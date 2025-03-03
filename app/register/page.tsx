@@ -69,7 +69,7 @@ export default function Register() {
                         }
                     });
                 }}>
-                    <input type="text" id="id" placeholder="아이디" className="border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete='username' autoFocus onChange={e => {
+                    <input type="text" id="id" placeholder={(deviceLang === 1 && isClient) ? "ID" : "아이디"} className="border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete='username' autoFocus onChange={e => {
                         setId(e.currentTarget.value);
                         setDuplicateID(false);
                         fetch('/api/check_id?id=' + encodeURIComponent(e.currentTarget.value)).then(async res => {

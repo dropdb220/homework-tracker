@@ -11,7 +11,7 @@ import { materialDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import Image from "next/image";
 import Link from "next/link";
 
-import { AccountFlag, LSAccount } from "@/app/types";
+import { AccountFlag, LSAccount, PrintStatus } from "@/app/types";
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
@@ -42,13 +42,13 @@ function ImageModal({ src, children, className }: { src: string, children: React
     );
 }
 
-export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }) {
+export default function UpdateRejectReason(props: { params: Promise<{ idx: string }> }) {
     const params = use(props.params);
     const router = useRouter();
 
     const [title, setTitle] = useState('');
-    const [answerKo, setAnswerKo] = useState('');
-    const [answerEn, setAnswerEn] = useState('');
+    const [rejectReasonKo, setRejectReasonKo] = useState('');
+    const [rejectReasonEn, setRejectReasonEn] = useState('');
     const [lang, setLang] = useState(0);
     const [errorMsg, setErrorMsg] = useState<string>('');
     const [preview, setPreview] = useState(false);
@@ -60,7 +60,7 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
 
     useEffect(() => {
         if (!account || !account.token) router.replace('/');
-        else fetch(`/api/question/${params.idx}`, {
+        else fetch(`/api/print/${params.idx}`, {
             method: 'GET',
             headers: {
                 Authorization: account.token
@@ -70,11 +70,11 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                 router.replace('/');
             } else {
                 response.json().then(data => {
-                    if (!data.solved) router.replace(`/question/${params.idx}/answer`);
+                    if (data.status !== PrintStatus.rejected) router.replace(`/print/${params.idx}/reject`);
                     else {
                         setTitle(data.title);
-                        setAnswerKo(data.answer_ko);
-                        setAnswerEn(data.answer_en);
+                        setRejectReasonKo(data.rejectReason_ko);
+                        setRejectReasonEn(data.rejectReason_en);
                     }
                 });
             }
@@ -94,7 +94,7 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                 router.replace('/');
             } else {
                 response.json().then(data => {
-                    if (!(data.data.flag & AccountFlag.answerer)) router.replace(`/question/${params.idx}`);
+                    if (!(data.data.flag & AccountFlag.printer)) router.replace(`/print/${params.idx}`);
                 });
             }
         }).catch(() => {
@@ -123,9 +123,9 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
 
     return (<>
         <div className="border-b-slate-400 border-b">
-            <p className="eng">Editing the answer for question</p>
+            <p className="eng">Editing the rejection reason for print request</p>
             <h1 className="text-4xl font-bold">{title}</h1>
-            <p className="kor">에 대한 답변 수정 중</p>
+            <p className="kor">에 대한 거부 사유 수정 중</p>
             <br />
         </div>
         <div>
@@ -197,11 +197,11 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                             p({ children, ...props }) {
                                 return <div {...props}>{children}</div>
                             }
-                        }} className="prose dark:prose-invert">{lang == 1 ? answerEn : answerKo}</Markdown>
+                        }} className="prose dark:prose-invert">{lang == 1 ? rejectReasonEn : rejectReasonKo}</Markdown>
                 </div>
-                : <textarea rows={30} className="resize-none w-full" value={lang == 1 ? answerEn : answerKo} onChange={e => {
-                    if (lang == 1) setAnswerEn(e.currentTarget.value);
-                    else setAnswerKo(e.currentTarget.value);
+                : <textarea rows={30} className="resize-none w-full" value={lang == 1 ? rejectReasonEn : rejectReasonKo} onChange={e => {
+                    if (lang == 1) setRejectReasonEn(e.currentTarget.value);
+                    else setRejectReasonKo(e.currentTarget.value);
                 }}></textarea>}
         </div>
         <br />
@@ -231,8 +231,8 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                 e.target.value = '';
                 if (response.ok) {
                     response.json().then(data => {
-                        setAnswerKo(answerKo + `${answerKo === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
-                        setAnswerEn(answerEn + `${answerEn === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[Enter file description](${data.path})`)
+                        setRejectReasonKo(rejectReasonKo + `${rejectReasonKo === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[파일 설명을 입력하세요](${data.path})`)
+                        setRejectReasonEn(rejectReasonEn + `${rejectReasonEn === '' ? '' : '\n'}` + `${file.type.startsWith('image/') ? '!' : ''}[Enter file description](${data.path})`)
                     })
                 } else {
                     if (response.status === 413) {
@@ -246,23 +246,23 @@ export default function UpdateAnswer(props: { params: Promise<{ idx: string }> }
                 }
             });
         }} />
-        <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={title === '' || answerKo === '' || isOffline} onClick={e => {
+        <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={title === '' || rejectReasonKo === '' || isOffline} onClick={e => {
             e.preventDefault();
             const target = e.currentTarget;
             target.disabled = true;
-            if (!title || !answerKo) return;
-            fetch(`/api/question/${params.idx}/answer`, {
+            if (!title || !rejectReasonKo) return;
+            fetch(`/api/print/${params.idx}/reject`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: account!.token!
                 },
                 body: JSON.stringify({
-                    answer: answerKo,
-                    answer_en: answerEn
+                    rejectReason_ko: rejectReasonKo,
+                    rejectReason_en: rejectReasonEn
                 })
             }).then(response => {
-                if (response.ok) router.push(`/question/${params.idx}`);
+                if (response.ok) router.push(`/print/${params.idx}`);
                 else {
                     target.disabled = false;
                     response.json().then(data2 => {

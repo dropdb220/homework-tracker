@@ -56,7 +56,7 @@ export async function GET(request: Request) {
         .concat(posts.filter(post => post.type > 0).filter(post => post.deadline == null).sort((a, b) => a.type - b.type));
     const currentExam = exams.filter(exam => new Date(exam.subjects.slice(-1)[0].date) as unknown as number > (new Date() as unknown as number) - 1000 * 60 * 60 * 24).sort((a, b) => (new Date(a.subjects[0].date) as unknown as number) - (new Date(b.subjects[0].date) as unknown as number))[0];
     const currentCsat = csat.filter(csat => new Date(csat.date) as unknown as number > (new Date() as unknown as number) - 1000 * 60 * 60 * 24).sort((a, b) => (new Date(a.date) as unknown as number) - (new Date(b.date) as unknown as number))[0];
-    return new Response(JSON.stringify({ posts: sortedPosts.map(x => { return { count: x.count, title: userData.lang == 1 ? (x.title_en ?? x.title) : x.title, type: x.type, deadline: x.deadline }; }), exam: currentExam, csat: currentCsat ? { ...currentCsat, type: userData.lang == 1 ? (currentCsat.type_en ?? currentCsat.type) : currentCsat.type } : null }), { status: 200 });
+    return new Response(JSON.stringify({ posts: sortedPosts.map(x => { return { count: x.count, title: userData.lang == 1 ? (x.title_en === '' ? x.title : x.title_en) : x.title, type: x.type, deadline: x.deadline }; }), exam: currentExam, csat: currentCsat ? { ...currentCsat, type: userData.lang == 1 ? (currentCsat.type_en === '' ? currentCsat.type : currentCsat.type_en) : currentCsat.type } : null }), { status: 200 });
 }
 
 export async function POST(request: Request) {
@@ -113,7 +113,8 @@ export async function POST(request: Request) {
             sendNotification(sub, JSON.stringify([{
                 title: user.lang == 1 ? `${postTypeEn[data.type]} Announcement Posted` : `${postType[data.type]} 공지 등록됨`,
                 body: user.lang == 1 ? `${data.title_en === "" ? data.title : data.title_en} was posted just now.` : `${data.title}이(가) 등록되었습니다.`,
-                tag: count.toString()
+                tag: count.toString(),
+                url: `/post/${count}`
             }])).catch(() => { })
         });
     });

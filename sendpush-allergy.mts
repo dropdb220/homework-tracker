@@ -33,7 +33,8 @@ userList.forEach(user => {
             body: user.lang === 1
             ? `Foods that cause ${user.allergy.filter((x: number) => uniqueList.includes(x)).map(x => allergyMap[x - 1][1]).join(', ')} allergies are included in the meal.`
             : `급식 중 ${user.allergy.filter((x: number) => uniqueList.includes(x)).map(x => allergyMap[x - 1][0]).join(', ')} 알러지 유발 식품이 포함되어 있습니다.`,
-            tag: 'allergy'
+            tag: 'allergy',
+            url: '/'
         }])).catch(() => { })
     });
 });

@@ -1,6 +1,7 @@
 import { MongoClient } from "mongodb";
 import { setVapidDetails, sendNotification } from "web-push";
 import i18n from "@/app/i18n.json";
+import { AccountFlag } from "@/app/types";
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +36,7 @@ export async function GET(request: Request, props: { params: Promise<{ idx: stri
     }
     const questionsCollection = db.collection('questions');
     const question = await questionsCollection.findOne({ idx: Number(params.idx) });
-    if (!question || (!userData.answerer && !question.public && question.user !== userData.id)) {
+    if (!question || (!(userData.flag & AccountFlag.answerer) && !question.public && question.user !== userData.id)) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentPost[clientLang] }), { status: 404 });
     }
@@ -79,7 +80,7 @@ export async function PUT(request: Request, props: { params: Promise<{ idx: stri
     }
     const questionsCollection = db.collection('questions');
     const question = await questionsCollection.findOne({ idx: Number(params.idx) });
-    if (!question || (!userData.answerer && !question.public && question.user !== userData.id)) {
+    if (!question || (!(userData.flag & AccountFlag.answerer) && !question.public && question.user !== userData.id)) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentPost[clientLang] }), { status: 404 });
     }
@@ -97,13 +98,14 @@ export async function PUT(request: Request, props: { params: Promise<{ idx: stri
     await questionsCollection.updateOne({ idx: Number(params.idx) }, updateList);
     client.close();
     setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
-    const answerers = await usersCollection.find({ answerer: true }).toArray();
+    const answerers = await usersCollection.find({ flag: { $bitsAllSet: 1 } }).toArray();
     answerers.forEach(async (answerer) => {
         answerer.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify([{
                 title: answerer.lang == 1 ? 'Question Edited' : '질문 수정됨',
                 body: answerer.lang == 1 ? `Question ${question.title_en === "" ? question.title : question.title_en} was edited just now.` : `${question.title}이(가) 수정되었습니다.`,
-                tag: question.idx.toString()
+                tag: question.idx.toString(),
+                url: `/question/${question.idx}`
             }])).catch(() => { });
         });
     });
@@ -141,7 +143,7 @@ export async function DELETE(request: Request, props: { params: Promise<{ idx: s
     }
     const questionsCollection = db.collection('questions');
     const question = await questionsCollection.findOne({ idx: Number(params.idx) });
-    if (!question || (!userData.answerer && !question.public && question.user !== userData.id)) {
+    if (!question || (!(userData.flag & AccountFlag.answerer) && !question.public && question.user !== userData.id)) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentPost[clientLang] }), { status: 404 });
     }

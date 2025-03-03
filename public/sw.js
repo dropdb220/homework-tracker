@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cache-v78';
+const CACHE_NAME = 'cache-v81';
 const UPLOAD_PERMANENT_CACHE_NAME = 'upload-cache';
 
 self.addEventListener('install', event => {
@@ -16,7 +16,7 @@ self.addEventListener('activate', event => {
                             return cache.keys().then(keys => {
                                 return Promise.all(
                                     keys.map(request => {
-                                        if (request.url.includes('/api/post') && request.method === 'GET') {
+                                        if ((request.url.includes('/api/post') || request.url.includes('/api/question') || request.url.includes('/api/print')) && request.method === 'GET') {
                                             return caches.open(CACHE_NAME).then(async newCache => {
                                                 return newCache.put(request, (await cache.match(request)).clone()).then(() => {
                                                     return cache.delete(request);
@@ -48,6 +48,8 @@ self.addEventListener('activate', event => {
                 '/write',
                 '/question',
                 '/question/write',
+                '/print',
+                '/print/write',
                 '/account',
                 '/account/edit',
                 '/account.svg',
@@ -88,7 +90,7 @@ self.addEventListener('fetch', event => {
             }) : (
                 (event.request.url.includes('/api')) ?
                     (
-                        ((event.request.url.includes('/api/post') || event.request.url.includes('/api/question')) && event.request.method === 'GET') ? (
+                        ((event.request.url.includes('/api/post') || event.request.url.includes('/api/question') || event.request.url.includes('/api/print')) && event.request.method === 'GET') ? (
                             fetch(event.request)
                                 .then(response => {
                                     if (!response.ok) return response;
@@ -136,11 +138,7 @@ self.addEventListener('push', event => {
     body.forEach(data => {
         self.registration.showNotification(data.title, {
             body: data.body,
-            tag: (data.title === '급식 알러지 알림' || data.title === 'Allergy Notification') ? '/' :
-            ((data.title === '계정 생성됨' || data.title === 'Account Created') ? `/account/${data.tag}` :
-                (data.tag === 'exam' ? '/' :
-                    ((data.title.startsWith('질문') || data.title.startsWith('답변') || data.title.startsWith('Question') || data.title.startsWith('Answer')) ? `/question/${data.tag}`:
-                    `/post/${data.tag}`))),
+            tag: data.url,
             icon: '/icon3.png',
             badge: '/pushicon.png'
         });
