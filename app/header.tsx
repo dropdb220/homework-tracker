@@ -75,7 +75,7 @@ export default function Header() {
                     `}
                 </style>
             }
-            <header className={`sticky w-full grid grid-cols-[auto_1fr_auto${(process.env.NEXT_PUBLIC_QNA_ENABLED == '1' && account && account.token && isValidToken) ? '_auto' : ''}] p-4 h-24`}>
+            <header className={`sticky w-full grid grid-cols-[auto_1fr_auto${(account && account.token && isValidToken) ? '_auto' : ''}] p-4 h-24`}>
                 <Link href="/" className="grid grid-cols-[auto_auto]">
                     {/*eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/icon3.png" alt={process.env.NEXT_PUBLIC_TITLE || '숙제 트래커'} width={48} height={48} className="h-12 w-12 kor" />
