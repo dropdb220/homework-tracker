@@ -275,8 +275,8 @@ export default function Home() {
             <div className="border-t border-t-slate-400 w-full grid grid-cols-2 pt-8 pb-8">
               <span className="border-r border-r-slate-400 pl-4 pr-4 flex flex-col align-middle justify-center h-full">
                 <p className="text-center kor">{exam ? `${exam.year}년 ${exam.semester}학기 ${exam.idx}차 지필평가` : '지필평가'}</p>
-                <p className="text-center eng">{exam ? `Year ${exam.year} Semester` : 'Exam'}</p>
-                <p className="test-center eng">{exam && `${exam.semester}${exam.idx === 1 ? 'First' : 'Second'} Exam`}</p>
+                <p className="text-center eng">{exam ? `Year ${exam.year} Semester ${exam.semester}` : 'Exam'}</p>
+                <p className="test-center eng">{exam && `${exam.idx === 1 ? 'First' : 'Second'} Exam`}</p>
                 <h1 className="text-3xl sm:text-4xl md:text-6xl text-center">{exam ? (
                   (new Date() as unknown as number) <= (new Date(exam.subjects[0].date) as unknown as number) ?
                     <p>{`D-${Math.ceil((new Date(exam.subjects[0].date) as unknown as number - (new Date() as unknown as number)) / 1000 / 60 / 60 / 24)}`}</p>
