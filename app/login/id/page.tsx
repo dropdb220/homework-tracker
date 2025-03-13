@@ -99,7 +99,7 @@ export default function LoginPhase1() {
             <div className="eng">
                 <Image src="/offline.svg" alt="Offline" width={150} height={150} className="mt-2 mb-8 ml-auto mr-auto dark:invert" />
                 <h2>You{'\''}re offline.</h2>
-                <p>An active internet conenction is required to login.</p>
+                <p>An active internet connection is required to login.</p>
             </div>
         </>
     ) : (

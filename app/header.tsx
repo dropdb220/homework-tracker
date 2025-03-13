@@ -96,13 +96,13 @@ export default function Header() {
                             setShowUtilMenu(!showUtilMenu);
                             e.preventDefault();
                         }}>
-            {/*eslint-disable-next-line @next/next/no-img-element */}
+                            {/*eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/menu.svg" alt="메뉴" width={36} height={36} className="kor dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
                             {/*eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/menu.svg" alt="Menu" width={36} height={36} className="eng dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
                         </button>
                         <Link href="/account" className="hidden md:inline">
-                        {/*eslint-disable-next-line @next/next/no-img-element */}
+                            {/*eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/account.svg" alt="계정" width={36} height={36} className="kor dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
                             {/*eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/account.svg" alt="Account" width={36} height={36} className="eng dark:invert mr-2 mt-1.5 mb-1.5 h-9" />
@@ -172,75 +172,77 @@ export default function Header() {
                             </>
                         }
                         <button className="navbar-toggler md:hidden absolute top-0 right-0 mr-8 mt-7" onClick={e => { setShowMobileMenu(!showMobileMenu); }}>
-                        {/*eslint-disable-next-line @next/next/no-img-element */}
+                            {/*eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/menu.svg" alt="메뉴" width={24} height={24} className="kor dark:invert" />
                             {/*eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/menu.svg" alt="Menu" width={24} height={24} className="eng dark:invert" />
                         </button>
                         <div className={`${!showMobileMenu && "hidden"} fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 md:hidden z-40`} onClick={e => { setShowMobileMenu(false); }} />
                         <div className={`${!showMobileMenu && "hidden"} md:hidden h-[90%] fixed right-4 top-11 dark:bg-gray-800 mt-4 border border-gray-300 bg-white dark:border-gray-700 rounded-lg shadow-lg w-[35%] ml-auto mr-0 z-50`}>
-                            <div className="grid grid-cols md:hidden grid-rows-[auto_auto_1fr_auto] gap-2 w-[80%] ml-4 mr-4 mt-3 mb-3 z-20 h-full">
-                                {process.env.NEXT_PUBLIC_QNA_ENABLED == '1' && account && account.token && isValidToken &&
-                                    <Link href="/question">
-                                        <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowMobileMenu(false); }}>
-                                            <span className="kor">질문 게시판</span>
-                                            <span className="eng">Q&A</span>
-                                        </button>
-                                    </Link>
-                                }
-                                {process.env.NEXT_PUBLIC_PRINT_ENABLED == '1' && account && account.token && isValidToken &&
-                                    <Link href="/print">
-                                        <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowMobileMenu(false); }}>
-                                            <span className="kor">인쇄 요청</span>
-                                            <span className="eng">Print Request</span>
-                                        </button>
-                                    </Link>
-                                }
-                                <button className={`w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring ${isUnlockingPDF && 'text-gray-400'}`} disabled={isUnlockingPDF} onClick={e => {
-                                    const file = document.createElement('input');
-                                    file.type = 'file';
-                                    file.accept = 'application/pdf';
-                                    file.onchange = async () => {
-                                        setIsUnlockingPDF(true);
-                                        const formData = new FormData();
-                                        formData.append('file', file.files![0]);
-                                        const res = await fetch('/api/unlock_pdf', {
-                                            method: 'POST',
-                                            headers: { Authorization: account!.token! },
-                                            body: formData
-                                        });
-                                        if (res.ok) {
-                                            const data = await res.json();
-                                            const dl = await fetch(data.path + '/' + data.dlName);
-                                            const blob = await dl.blob();
-                                            const a = document.createElement('a');
-                                            a.href = URL.createObjectURL(blob);
-                                            a.download = data.dlName;
-                                            a.click();
-                                            setIsUnlockingPDF(false);
-                                        } else {
-                                            const data = await res.json();
-                                            alert(data.msg);
-                                            setIsUnlockingPDF(false);
-                                        }
-                                    };
-                                    file.click();
-                                }}>
-                                    <span className="kor">PDF 잠금해제{isUnlockingPDF && ' 중...'}</span>
-                                    <span className="eng">Unlock{isUnlockingPDF && 'ing'} PDF{isUnlockingPDF && '...'}</span>
-                                </button>
-                                {process.env.NEXT_PUBLIC_DISCORD_INVITE != null &&
-                                    <a href={process.env.NEXT_PUBLIC_DISCORD_INVITE!}>
-                                        <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowUtilMenu(false); }}>
-                                            <span className="kor">Discord 서버</span>
-                                            <span className="eng">Discord Server</span>
-                                        </button>
-                                    </a>
-                                }
+                            <div className="grid grid-cols md:hidden grid-rows-[auto_1fr_auto] gap-2 w-[80%] ml-4 mr-4 mt-3 mb-3 z-20 h-full">
+                                <div>
+                                    {process.env.NEXT_PUBLIC_QNA_ENABLED == '1' && account && account.token && isValidToken &&
+                                        <Link href="/question">
+                                            <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowMobileMenu(false); }}>
+                                                <span className="kor">질문 게시판</span>
+                                                <span className="eng">Q&A</span>
+                                            </button>
+                                        </Link>
+                                    }
+                                    {process.env.NEXT_PUBLIC_PRINT_ENABLED == '1' && account && account.token && isValidToken &&
+                                        <Link href="/print">
+                                            <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowMobileMenu(false); }}>
+                                                <span className="kor">인쇄 요청</span>
+                                                <span className="eng">Print Request</span>
+                                            </button>
+                                        </Link>
+                                    }
+                                    <button className={`w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring ${isUnlockingPDF && 'text-gray-400'}`} disabled={isUnlockingPDF} onClick={e => {
+                                        const file = document.createElement('input');
+                                        file.type = 'file';
+                                        file.accept = 'application/pdf';
+                                        file.onchange = async () => {
+                                            setIsUnlockingPDF(true);
+                                            const formData = new FormData();
+                                            formData.append('file', file.files![0]);
+                                            const res = await fetch('/api/unlock_pdf', {
+                                                method: 'POST',
+                                                headers: { Authorization: account!.token! },
+                                                body: formData
+                                            });
+                                            if (res.ok) {
+                                                const data = await res.json();
+                                                const dl = await fetch(data.path + '/' + data.dlName);
+                                                const blob = await dl.blob();
+                                                const a = document.createElement('a');
+                                                a.href = URL.createObjectURL(blob);
+                                                a.download = data.dlName;
+                                                a.click();
+                                                setIsUnlockingPDF(false);
+                                            } else {
+                                                const data = await res.json();
+                                                alert(data.msg);
+                                                setIsUnlockingPDF(false);
+                                            }
+                                        };
+                                        file.click();
+                                    }}>
+                                        <span className="kor">PDF 잠금해제{isUnlockingPDF && ' 중...'}</span>
+                                        <span className="eng">Unlock{isUnlockingPDF && 'ing'} PDF{isUnlockingPDF && '...'}</span>
+                                    </button>
+                                    {process.env.NEXT_PUBLIC_DISCORD_INVITE != null &&
+                                        <a href={process.env.NEXT_PUBLIC_DISCORD_INVITE!}>
+                                            <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring" onClick={() => { setShowUtilMenu(false); }}>
+                                                <span className="kor">Discord 서버</span>
+                                                <span className="eng">Discord Server</span>
+                                            </button>
+                                        </a>
+                                    }
+                                </div>
                                 <div className="md:hidden" />
                                 <Link href="/account" className="md:hidden w-full" onClick={e => { setShowMobileMenu(false); }}>
                                     <div className="grid grid-cols-[auto_1fr] mt-[-72px]">
-                                    {/*eslint-disable-next-line @next/next/no-img-element */}
+                                        {/*eslint-disable-next-line @next/next/no-img-element */}
                                         <img src="/account.svg" alt="계정" width={24} height={24} className="kor w-[24px] h-[24px] dark:invert mr-2 md:hidden" />
                                         {/*eslint-disable-next-line @next/next/no-img-element */}
                                         <img src="/account.svg" alt="Account" width={24} height={24} className="eng w-[24px] h-[24px] dark:invert mr-2 md:hidden" />
