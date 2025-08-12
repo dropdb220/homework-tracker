@@ -12,6 +12,11 @@
     "alreadyLoggedOut": ["로그아웃 상태입니다.", "You're already logged out."],
     "invalidUser": ["유효하지 않은 사용자입니다.", "Invalid user."],
     "notApproved": ["승인 대기 중입니다.", "You're pending approval."],
+    "invalidPasscode": ["유효하지 않은 암호", "Invalid passcode"],
+    "incorrectPasscode": ["암호가 일치하지 않습니다.", "Incorrect passcode."],
+    "setupEnc": ["암호화 설정 필요", "Encryption setup required"],
+    "alreadyHasEnc": ["이미 암호화가 설정되어 있습니다.", "Encryption is already set up."],
+    "lockout": ["암호를 여러 번 잘못 입력하여 기존 계정이 잠겼습니다.", "The account provided is locked due to multiple incorrect password attempts."],
 
     "#comment2": "User info related strings",
     "IDLimit": ["ID는 4자 이상 20자 이하로 입력하세요.", "Please enter your ID between 4 and 20 characters."],
@@ -81,5 +86,9 @@
     "#comment10": "Miscellaneous strings",
     "malformed": ["입력한 정보가 올바르지 않습니다.", "The information you entered is malformed."],
     "invalidAccess": ["유효하지 않은 접근입니다.", "Invalid access."],
-    "unknown": ["알 수 없는 오류가 발생했습니다.", "An unknown error occurred."]
+    "unknown": ["알 수 없는 오류가 발생했습니다.", "An unknown error occurred."],
+
+    "#comment11": "OneDrive related strings",
+    "oneDriveError": ["OneDrive 관련 오류가 발생했습니다. 관리자에게 문의하세요.", "An error related to OneDrive occurred. Please contact the administrator."],
+    "nonExistentFile": ["존재하지 않는 파일입니다.", "The file does not exist."]
 }

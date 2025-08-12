@@ -10,37 +10,13 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { materialDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import Image from "next/image";
 import Link from "next/link";
+import ImageModal from "@/app/imagemodal";
 
 import { LSAccount } from "@/app/types";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "usehooks-ts";
-
-function ImageModal({ src, children, className }: { src: string, children: React.ReactNode, className?: string }) {
-    const [displayed, setDisplayed] = useState(false);
-
-    return (
-        <div className={className}>
-            <button className="block w-full" onClick={e => setDisplayed(true)}>
-                {children}
-            </button>
-            {displayed &&
-                <button className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50" onClick={e => setDisplayed(false)}>
-                    <div className="fixed top-[50%] left-[50%] transform translate-x-[-50%] translate-y-[-50%] z-50">
-                        <Link href={src} target="_blank">
-                            {(src.startsWith('/') && !src.startsWith('//'))
-                                ? <Image src={src} alt={src} width={5000} height={5000} className="w-auto max-w-[90vw] max-h-screen" />
-                                // eslint-disable-next-line @next/next/no-img-element
-                                : <img src={src} alt={src} className="w-auto max-w-[90vw] max-h-screen" />
-                            }
-                        </Link>
-                    </div>
-                </button>
-            }
-        </div>
-    );
-}
 
 export default function WriteQuestion() {
     const router = useRouter();
@@ -101,7 +77,7 @@ export default function WriteQuestion() {
     return (
         <>
             <div className="border-b-slate-400 border-b">
-                <input type="text" autoFocus id="title" placeholder={(deviceLang === 1 && isClient) ? "Title" : "제목"} className="border border-slate-400 text-4xl rounded-lg p-4 w-[100%] dark:bg-[#424242]" value={lang == 1 ? titleEn : titleKo} onChange={e => {
+                <input type="text" autoFocus id="title" placeholder={(deviceLang === 1 && isClient) ? "Title" : "제목"} className="border border-slate-400 text-4xl rounded-lg p-4 w-full dark:bg-[#424242]" value={lang == 1 ? titleEn : titleKo} onChange={e => {
                     if (lang == 1) setTitleEn(e.currentTarget.value);
                     else setTitleKo(e.currentTarget.value);
                 }} />
@@ -192,7 +168,7 @@ export default function WriteQuestion() {
                     }}></textarea>}
             </div>
             <br />
-            <button className="float-left ml-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={isUploading} onClick={e => {
+            <button className="float-left ml-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" disabled={isUploading} onClick={e => {
                 e.preventDefault();
                 document.getElementById('upload')?.click();
             }}>
@@ -233,7 +209,7 @@ export default function WriteQuestion() {
                     }
                 });
             }} />
-            <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={titleKo === '' || questionKo === '' || isOffline} onClick={e => {
+            <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" disabled={titleKo === '' || questionKo === '' || isOffline} onClick={e => {
                 e.preventDefault();
                 const target = e.currentTarget;
                 target.disabled = true;

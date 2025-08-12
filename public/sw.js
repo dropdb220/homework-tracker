@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cache-v88';
+const CACHE_NAME = 'cache-v89';
 const UPLOAD_PERMANENT_CACHE_NAME = 'upload-cache';
 
 self.addEventListener('install', event => {
@@ -52,6 +52,9 @@ self.addEventListener('activate', event => {
                 '/print/write',
                 '/account',
                 '/account/edit',
+                '/file.svg',
+                '/close.svg',
+                '/folder.svg',
                 '/account.svg',
                 '/back.svg',
                 '/github.svg',

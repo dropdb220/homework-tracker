@@ -17,6 +17,7 @@ export default function MyAccountEditpage() {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [pwd, setPwd] = useState('');
+    const [hasEnc, setHasEnc] = useState(false);
     const [perm, setPerm] = useState(2);
     const [isAccepted, setIsAccepted] = useState(false);
     const [allergy, setAllergy] = useState<Array<number>>([]);
@@ -43,6 +44,7 @@ export default function MyAccountEditpage() {
                     setFirstName(data.firstName);
                     setLastName(data.lastName);
                     setPerm(data.perm);
+                    setHasEnc(data.hasEnc);
                     setIsAccepted(data.accepted || false);
                     setAllergy(data.allergy || []);
                     setFlag(data.flag);
@@ -183,13 +185,36 @@ export default function MyAccountEditpage() {
                     <label htmlFor="passkey" className="eng">Passkey</label>
                     <br />
                     <Link href="/register/passkey">
-                        <button id="passkey" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">
+                        <button id="passkey" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
                             <span className="kor">패스키 등록하기</span>
                             <span className="eng">Register a Passkey</span>
                         </button>
                     </Link>
                     <br />
                     <br />
+                    <label htmlFor="enc" className="kor">PDF 암호화</label>
+                    <label htmlFor="enc" className="eng">PDF Encryption</label>
+                    <br />
+                    {hasEnc ?
+                        <>
+                            <p>등록됨</p>
+                            <br />
+                            <Link href="/pdf/change">
+                                <button id="enc" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
+                                    <span className="kor">암호 변경하기</span>
+                                    <span className="eng">Change Passcode</span>
+                                </button>
+                            </Link>
+                        </> : <>
+                            <Link href="/pdf/setup">
+                                <button id="enc" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
+                                    <span className="kor">등록하기</span>
+                                    <span className="eng">Register</span>
+                                </button>
+                            </Link>
+                        </>
+                    }
+                    <br /><br />
                     <label htmlFor="pwd" className="kor">비밀번호 변경</label>
                     <label htmlFor="pwd" className="eng">Change Password</label>
                     <br />
@@ -197,7 +222,7 @@ export default function MyAccountEditpage() {
                     <input type="password" autoComplete="new-password" id="pwd" value={pwd} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242]" onChange={e => {
                         setPwd(e.currentTarget.value);
                     }} />
-                    <button className="w-[20%] ml-[10%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" onClick={e => {
+                    <button className="w-[20%] ml-[10%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={e => {
                         e.preventDefault();
                         setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');
                         fetch('/api/account', {
@@ -235,7 +260,7 @@ export default function MyAccountEditpage() {
                                     <span className="eng">Connected: </span>
                                     <span>{discordID}</span>
                                     <br />
-                                    <button id="discord" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" onClick={() => {
+                                    <button id="discord" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => {
                                         setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');
                                         fetch('/api/discord', {
                                             method: 'DELETE',
@@ -260,7 +285,7 @@ export default function MyAccountEditpage() {
                             ) : (
                                 <>
                                     <a href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID!}&response_type=code&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI!)}&scope=identify+guilds&prompt=none`}>
-                                        <button id="discord" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">
+                                        <button id="discord" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
                                             <span className="kor">연동하기</span>
                                             <span className="eng">Connect</span>
                                         </button>
@@ -274,7 +299,7 @@ export default function MyAccountEditpage() {
                     <label htmlFor="perm" className="kor">권한</label>
                     <label htmlFor="perm" className="eng">Permissions</label>
                     <br />
-                    <select value={perm} id="perm" disabled={perm !== 0} className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-[100%] dark:bg-[#424242]" onChange={e => {
+                    <select value={perm} id="perm" disabled={perm !== 0} className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-full dark:bg-[#424242]" onChange={e => {
                         setPerm(parseInt(e.currentTarget.value));
                         setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');
                         fetch('/api/account', {
@@ -370,7 +395,7 @@ export default function MyAccountEditpage() {
                     <br />
                     <label htmlFor="lang">언어{'('}Language{')'}</label>
                     <br />
-                    <select value={lang} id="lang" className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-[100%] dark:bg-[#424242]" onChange={e => {
+                    <select value={lang} id="lang" className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-full dark:bg-[#424242]" onChange={e => {
                         setLang(parseInt(e.currentTarget.value));
                         const newLang = parseInt(e.currentTarget.value);
                         setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');

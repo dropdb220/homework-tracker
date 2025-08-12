@@ -170,7 +170,7 @@ const OtherAccountEditpage: React.FC<{ params: Promise<{ userid: string }> }> = 
                     <input type="password" id="pwd" autoComplete="new-password" disabled={!isClient || (account?.id !== params.userid && myPerm > 0)} value={pwd} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242]" onChange={e => {
                         setPwd(e.currentTarget.value);
                     }} />
-                    <button className="w-[20%] ml-[10%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={!isClient || (account?.id !== params.userid && myPerm > 0)} onClick={e => {
+                    <button className="w-[20%] ml-[10%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" disabled={!isClient || (account?.id !== params.userid && myPerm > 0)} onClick={e => {
                         e.preventDefault();
                         setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');
                         fetch('/api/account', {
@@ -200,7 +200,7 @@ const OtherAccountEditpage: React.FC<{ params: Promise<{ userid: string }> }> = 
                     <label htmlFor="perm" className="kor">권한</label>
                     <label htmlFor="perm" className="eng">Permissions</label>
                     <br />
-                    <select value={perm} id="perm" disabled={!isClient || myPerm !== 0} className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-[100%] dark:bg-[#424242]" onChange={e => {
+                    <select value={perm} id="perm" disabled={!isClient || myPerm !== 0} className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-full dark:bg-[#424242]" onChange={e => {
                         setPerm(parseInt(e.currentTarget.value));
                         setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');
                         fetch('/api/account', {
@@ -296,7 +296,7 @@ const OtherAccountEditpage: React.FC<{ params: Promise<{ userid: string }> }> = 
                     <br />
                     <label htmlFor="lang">언어{'('}Language{')'}</label>
                     <br />
-                    <select value={lang} id="lang" disabled={!isClient || (account?.id !== params.userid && myPerm > 1)} className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-[100%] dark:bg-[#424242]" onChange={e => {
+                    <select value={lang} id="lang" disabled={!isClient || (account?.id !== params.userid && myPerm > 1)} className="border border-slate-400 h-12 rounded-lg pl-4 pr-4 w-full dark:bg-[#424242]" onChange={e => {
                         setLang(parseInt(e.currentTarget.value));
                         const newLang = parseInt(e.currentTarget.value);
                         setSaveState(deviceLang === 1 ? 'Saving...' : '저장 중');

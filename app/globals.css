@@ -1,33 +1,72 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
-* {
-  box-sizing: border-box;
-  white-space: break-spaces;
+@theme {
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+  --background-image-gradient-conic: conic-gradient(
+    from 180deg at 50% 50%,
+    var(--tw-gradient-stops)
+  );
 }
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
-  --viewport-width: 100vw;
-}
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-rgb: 51, 51, 51;
-    color-scheme: dark;
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+@utility text-balance {
+  text-wrap: balance;
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  * {
+    box-sizing: border-box;
+    white-space: break-spaces;
   }
+
+  :root {
+    --foreground-rgb: 0, 0, 0;
+    --background-rgb: 255, 255, 255;
+    --viewport-width: 100vw;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --foreground-rgb: 255, 255, 255;
+      --background-rgb: 51, 51, 51;
+      color-scheme: dark;
+    }
+  }
+
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-rgb));
+  }
+}
+
+@keyframes shake {
+    0% { transform: translateX(10px); } 
+    10% { transform: translateX(-10px); }
+    20% { transform: translateX(8px); }
+    30% { transform: translateX(-8px); }
+    40% { transform: translateX(6px); }
+    50% { transform: translateX(-6px); }
+    60% { transform: translateX(4px); }
+    70% { transform: translateX(-4px); }
+    80% { transform: translateX(2px); }
+    90% { transform: translateX(-2px); }
+    100% { transform: translateX(0px); }
 }

@@ -49,7 +49,7 @@ export default function RegisterPasskey() {
                     <input type="button" value="건너뛰기" className={`kor w-[40%] ml-0 ${errorCnt < 3 ? 'hidden' : ''}`} />
                     <input type="button" value="Skip" className={`eng w-[40%] ml-0 ${errorCnt < 3 ? 'hidden' : ''}`} />
                 </Link>
-                <button className={`ml-[${errorCnt < 3 ? '60' : '20'}%] w-[40%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`} onClick={async e => {
+                <button className={`ml-[${errorCnt < 3 ? '60' : '20'}%] w-[40%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3`} onClick={async e => {
                     setErrorMsg('');
                     fetch('/api/passkey/register/prepare', {
                         method: 'GET',

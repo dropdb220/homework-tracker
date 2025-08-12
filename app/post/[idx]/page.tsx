@@ -11,6 +11,7 @@ import { materialDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import Image from "next/image";
 import Link from "next/link";
 import Dialog from '@/app/dialog';
+import ImageModal from "@/app/imagemodal";
 
 import { deadlineName, deadlineNameEn, postType, postTypeEn, LSAccount } from "@/app/types";
 
@@ -66,37 +67,6 @@ function ToDeadLine({ post }: { post: { count: number, title: string, type: numb
                 day: "numeric"
             })})` : 'None'}</p>
         </>
-    );
-}
-
-function ImageModal({ src, children, className }: { src: string, children: React.ReactNode, className?: string }) {
-    const [displayed, setDisplayed] = useState(false);
-
-    useEffect(() => {
-        if (src.startsWith('/') && !src.startsWith('//')) {
-            fetch(src).catch(() => { }); // cache original image to service worker
-        }
-    }, [src]);
-
-    return (
-        <div className={className}>
-            <button className="block w-full" onClick={e => setDisplayed(true)}>
-                {children}
-            </button>
-            {displayed &&
-                <button className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50" onClick={e => setDisplayed(false)}>
-                    <div className="fixed top-[50%] left-[50%] transform translate-x-[-50%] translate-y-[-50%] z-50">
-                        <Link href={src} target="_blank">
-                            {(src.startsWith('/') && !src.startsWith('//'))
-                                ? <Image src={src} alt={src} width={5000} height={5000} className="w-auto max-w-[90vw] max-h-screen" />
-                                // eslint-disable-next-line @next/next/no-img-element
-                                : <img src={src} alt={src} className="w-auto max-w-[90vw] max-h-screen" />
-                            }
-                        </Link>
-                    </div>
-                </button>
-            }
-        </div>
     );
 }
 
@@ -310,12 +280,12 @@ export default function Post(props: { params: Promise<{ idx: string }> }) {
                 {((perm <= 1 || account?.id === post.author.id) && !isOffline) &&
                     <>
                         <Link href={`/write/${params.idx}`}>
-                            <button className="ml-[40%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">
+                            <button className="ml-[40%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
                                 <span className="kor">수정</span>
                                 <span className="eng">Edit</span>
                             </button>
                         </Link>
-                        <button className="ml-[10%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-red-500 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" onClick={e => {
+                        <button className="ml-[10%] w-[25%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-red-500 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={e => {
                             fetch(`/api/post/${Number(params.idx)}`, {
                                 method: 'DELETE',
                                 headers: {

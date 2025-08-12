@@ -74,7 +74,7 @@ export default function LoginPhase1() {
                 <h1 className="text-3xl eng">Login</h1>
             </div>
             <div className="lg:mt-24">
-                <button className="w-full pt-4 pb-4 pl-8 pr-8 max-md:mt-8 mb-16 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" onClick={(e) => {
+                <button className="w-full pt-4 pb-4 pl-8 pr-8 max-md:mt-8 mb-16 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={(e) => {
                     fetch('/api/passkey/login/prepare')
                         .then(res => res.json())
                         .then((data) => {
@@ -139,7 +139,7 @@ export default function LoginPhase1() {
                         setIsOffline(true);
                     })
                 }}>
-                    <input type="text" id="id" placeholder={(deviceLang === 1 && isClient) ? "ID" : "아이디"} className="border border-slate-400 h-12 rounded-lg p-4 w-[100%] dark:bg-[#424242]" autoComplete="username webauthn" autoFocus onChange={e => {
+                    <input type="text" id="id" placeholder={(deviceLang === 1 && isClient) ? "ID" : "아이디"} className="border border-slate-400 h-12 rounded-lg p-4 w-full dark:bg-[#424242]" autoComplete="username webauthn" autoFocus onChange={e => {
                         setId(e.currentTarget.value);
                         setLoginFailed(false);
                     }} />
@@ -151,7 +151,7 @@ export default function LoginPhase1() {
                         <input type="button" className="w-[40%] ml-0 kor" value="계정 생성" />
                         <input type="button" className="w-[40%] ml-0 eng" value="Create Account" />
                     </Link>
-                    <button className="w-[40%] ml-[20%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring" disabled={id.length === 0 || loggingIn} type="submit">
+                    <button className="w-[40%] ml-[20%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" disabled={id.length === 0 || loggingIn} type="submit">
                         <span className="kor">다음</span>
                         <span className="eng">Next</span>
                     </button>

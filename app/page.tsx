@@ -99,7 +99,7 @@ export default function Home() {
         <>
           {notification == null ?
             <>
-              <button className={`ml-[20%] w-[40%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`} onClick={async e => {
+              <button className={`ml-[20%] w-[40%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3`} onClick={async e => {
                 if (!('serviceWorker' in navigator)) {
                   setDialogTitle(deviceLang === 1 ? "Unsupported Browser" : '지원하지 않는 브라우저');
                   setDialogType('alert');
@@ -189,14 +189,14 @@ export default function Home() {
                 <span className="eng">Receive Notifications</span>
               </button>
               <Link href="/write">
-                <button className={`ml-[10%] w-[30%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`}>
+                <button className={`ml-[10%] w-[30%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3`}>
                   <span className="kor">글쓰기</span>
                   <span className="eng">Write</span>
                 </button>
               </Link>
             </>
             : <Link href="/write">
-              <button className={`ml-[70%] w-[30%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring`}>
+              <button className={`ml-[70%] w-[30%] mr-0 pt-3 pb-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3`}>
                 <span className="kor">글쓰기</span>
                 <span className="eng">Write</span>
               </button>
@@ -351,12 +351,12 @@ export default function Home() {
         </>
         : (
           (account && account.token && isClient) ? (
-            <div className="bg-red-500 p-4 border border-red-500 rounded text-white">
+            <div className="bg-red-500 p-4 border border-red-500 rounded-sm text-white">
               <p className="kor">관리자의 계정 승인이 필요합니다.</p>
               <p className="eng">Administrator approval is required.</p>
             </div>
           ) : (
-            <div className="bg-red-500 p-4 border border-red-500 rounded text-white">
+            <div className="bg-red-500 p-4 border border-red-500 rounded-sm text-white">
               <p className="kor">로그인이 필요합니다.</p>
               <p className="eng">Please login.</p>
             </div>

@@ -130,7 +130,7 @@ const OtherAccountInfopage: React.FC<{ params: Promise<{ userid: string }> }> = 
                     <>
                         <br />
                         <Link href={`/account/edit/${params.userid}`}>
-                            <button className="w-[50%] ml-[50%] p-3 mt-4 rounded-lg bg-gray-500 text-white hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring">
+                            <button className="w-[50%] ml-[50%] p-3 mt-4 rounded-lg bg-gray-500 text-white hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
                                 <span className="kor">정보 수정</span>
                                 <span className="eng">Edit Info</span>
                             </button>

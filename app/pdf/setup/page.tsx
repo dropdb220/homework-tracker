@@ -1,0 +1,103 @@
+'use client';
+
+import Link from 'next/link';
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useLocalStorage } from "usehooks-ts";
+
+import { LSAccount } from "@/app/types";
+
+export default function RegisterEnc() {
+    const router = useRouter();
+
+    const [passcode, setPasscode] = useState('');
+    const [userID, setUserID] = useState('');
+    const [userPassword, setUserPassword] = useState('');
+    const [userPasscode, setUserPasscode] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [saveState, setSaveState] = useState('');
+    const [saveErrorMsg, setSaveErrorMsg] = useState('');
+
+    const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
+
+    useEffect(() => {
+        if (!account || !account.token) {
+            router.replace('/login');
+        }
+    }, [router, account]);
+
+    return (
+        <div className="w-full lg:w-[80%] md:grid md:grid-cols-2 md:gap-2 ml-auto mr-auto">
+            <div className="mb-4 lg:mt-24">
+                <h1 className="text-3xl kor">암호화 설정하기</h1>
+                <h1 className="text-3xl eng">Setup Encryption</h1>
+            </div>
+            <div className="lg:mt-24">
+                <p className="kor">PDF를 다운로드하려면 암호화 설정이 필요합니다.</p>
+                <p className="eng">Encryption setup is required to download PDFs.</p>
+                <br />
+                <label htmlFor="passcode" className="kor">{'사용할 암호(숫자 6자리)'}</label>
+                <label htmlFor="passcode" className="eng">{'New passcode(6-digit numeric)'}</label>
+                <br />
+                <input type="text" id="passcode" value={passcode} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242] [-webkit-text-security:disc]" onChange={e => {
+                    if (e.currentTarget.value === '' || /[0-9]+/.test(e.currentTarget.value) && e.currentTarget.value.length <= 6) setPasscode(e.currentTarget.value);
+                }} />
+                <br /><br />
+                <label htmlFor="userid" className="kor">{'암호화 설정된 다른 사용자 ID'}</label>
+                <label htmlFor="userid" className="eng">{'ID of another user with encryption enabled'}</label>
+                <br />
+                <input type="text" id="userid" value={userID} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242] [-webkit-text-security:disc]" onChange={e => {
+                    setUserID(e.currentTarget.value);
+                }} />
+                <br /><br />
+                <label htmlFor="userpassword" className="kor">{'해당 유저의 로그인 비밀번호'}</label>
+                <label htmlFor="userpassword" className="eng">{'Login password for that user'}</label>
+                <br />
+                <input type="password" id="userid" value={userPassword} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242]" onChange={e => {
+                    setUserPassword(e.currentTarget.value);
+                }} />
+                <br /><br />
+                <label htmlFor="userpass" className="kor">{'해당 유저의 암호'}</label>
+                <label htmlFor="userpass" className="eng">{'Passcode for that user'}</label>
+                <br />
+                <input type="text" id="userpass" value={userPasscode} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242] [-webkit-text-security:disc]" onChange={e => {
+                    if (e.currentTarget.value === '' || /[0-9]+/.test(e.currentTarget.value) && e.currentTarget.value.length <= 6) setUserPasscode(e.currentTarget.value);
+                }} />
+                <br /><br />
+                <button disabled={saving} className="w-[20%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={e => {
+                        e.preventDefault();
+                        setSaving(true);
+                        fetch('/api/pdf/setup', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: account!.token! },
+                            body: JSON.stringify({
+                                passcode,
+                                userID,
+                                userPassword,
+                                userPasscode
+                            })
+                        }).then(async res => {
+                            if (res.ok) {
+                                router.push('/pdf');
+                            } else {
+                                setSaving(false);
+                                setSaveState('저장 실패');
+                                setSaveErrorMsg((await res.json()).msg);
+                            }
+                        }).catch(() => {
+                            setSaving(false);
+                            setSaveState('저장 실패');
+                            setSaveErrorMsg(deviceLang === 1 ? 'You\'re Offline' : '오프라인 상태');
+                        });
+                    }}>
+                        <span className="kor">저장</span>
+                        <span className="eng">Save</span>
+                    </button>
+                    <br />
+                    {saveState !== '' && <div className="text-red-500">{saveErrorMsg}</div>}
+            </div>
+        </div>
+    );
+}
