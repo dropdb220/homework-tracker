@@ -15,6 +15,8 @@
     "invalidPasscode": ["유효하지 않은 암호", "Invalid passcode"],
     "incorrectPasscode": ["암호가 일치하지 않습니다.", "Incorrect passcode."],
     "setupEnc": ["암호화 설정 필요", "Encryption setup required"],
+    "setupEncOnDevice": ["이 디바이스에서 암호화 설정이 필요합니다.", "Encryption setup is required on this device."],
+    "upgradeEnc": ["암호화 버전 업그레이드 필요", "Encryption version upgrade required"],
     "alreadyHasEnc": ["이미 암호화가 설정되어 있습니다.", "Encryption is already set up."],
     "lockout": ["암호를 여러 번 잘못 입력하여 기존 계정이 잠겼습니다.", "The account provided is locked due to multiple incorrect password attempts."],
 

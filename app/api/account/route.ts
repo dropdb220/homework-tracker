@@ -28,7 +28,7 @@ export async function GET(request: Request) {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 perm: user.perm,
-                hasEnc: !!user.enc && !!user.iv,
+                hasEnc: !!user.encv2,
                 accepted: user.accepted,
                 allergy: user.allergy,
                 flag: user.flag,

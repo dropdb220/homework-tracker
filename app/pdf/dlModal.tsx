@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-export default function DlModal({ token, dKey, fileName, fileID, setShowModal }: { token: string, dKey: any, fileName: string, fileID: string, setShowModal: React.Dispatch<React.SetStateAction<boolean>> }) {
+export default function DlModal({ token, mKey, fileName, fileID, setShowModal }: { token: string, mKey: CryptoKey, fileName: string, fileID: string, setShowModal: React.Dispatch<React.SetStateAction<boolean>> }) {
     const [phase, setPhase] = useState(0);
     const [dlProgress, setDlProgress] = useState(0);
 
@@ -20,7 +20,7 @@ export default function DlModal({ token, dKey, fileName, fileID, setShowModal }:
                         <>
                             <button className="p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={(() => {
                                 setPhase(1);
-                                fetch(`/api/pdf/download/${fileID}`, {
+                                fetch(`/api/pdf/v2/download/${fileID}`, {
                                     method: 'POST',
                                     headers: {
                                         Authorization: token
@@ -42,7 +42,13 @@ export default function DlModal({ token, dKey, fileName, fileID, setShowModal }:
                                             if (dlProgress >= 0) setDlProgress(Math.floor(loaded / totalLen * 100));
                                         }
                                         setPhase(3);
-                                        const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new TextEncoder().encode(fileID) }, dKey, await new Blob(values).arrayBuffer());
+                                        const DEKBin = atob(d.encryptedKey);
+                                        const DEKBuf = new Uint8Array(DEKBin.length);
+                                        for (let i = 0; i < DEKBin.length; i++) {
+                                            DEKBuf[i] = DEKBin.charCodeAt(i);
+                                        }
+                                        const DEK = await crypto.subtle.unwrapKey('raw', DEKBuf.buffer, mKey, { name: 'AES-GCM', iv: new TextEncoder().encode(d.iv) }, { name: 'AES-GCM' }, false, ['decrypt']);
+                                        const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new TextEncoder().encode(fileID) }, DEK, await new Blob(values).arrayBuffer());
                                         const blob = new Blob([decrypted], { type: 'application/octet-stream' });
                                         setPhase(4);
                                         const a = document.createElement('a');

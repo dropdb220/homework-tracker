@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "build-push": "tsc -t esnext -m nodenext --moduleResolution nodenext --outDir pushdist sendpus*.mts app/types.ts"
+    "build-push": "tsc -t esnext -m nodenext --moduleResolution nodenext --outDir pushdist sendpus*.mts app/types.ts",
+    "build-ws": "tsc -t esnext -m nodenext --moduleResolution nodenext --outDir wsdist websocket/index.mts",
+    "dev-ws": "NODE_ENV=development node wsdist/index.mjs",
+    "start-ws": "NODE_ENV=production node wsdist/index.mjs"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^10.0.0",
@@ -31,7 +34,8 @@
     "remark-toc": "^9.0.0",
     "sharp": "^0.33.5",
     "usehooks-ts": "^3.1.0",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
@@ -40,6 +44,7 @@
     "@types/react": "19.0.1",
     "@types/react-dom": "19.0.2",
     "@types/web-push": "^3.6.3",
+    "@types/ws": "^8",
     "eslint": "^8",
     "eslint-config-next": "15.1.0",
     "postcss": "^8",

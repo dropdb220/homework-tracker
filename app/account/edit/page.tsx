@@ -195,14 +195,14 @@ export default function MyAccountEditpage() {
                     <label htmlFor="enc" className="kor">PDF 암호화</label>
                     <label htmlFor="enc" className="eng">PDF Encryption</label>
                     <br />
-                    {hasEnc ?
+                    {(hasEnc && !!localStorage.getItem('key') && !!localStorage.getItem('iv')) ?
                         <>
                             <p className="kor">등록됨</p>
                             <p className="eng">Registered</p>
-                            <Link href="/pdf/change">
+                            <Link href="/pdf/help">
                                 <button id="enc" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
-                                    <span className="kor">암호 변경하기</span>
-                                    <span className="eng">Change Passcode</span>
+                                    <span className="kor">새 기기 설정</span>
+                                    <span className="eng">Setup New Devices</span>
                                 </button>
                             </Link>
                         </> : <>

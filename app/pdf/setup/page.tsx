@@ -11,13 +11,8 @@ import { LSAccount } from "@/app/types";
 export default function RegisterEnc() {
     const router = useRouter();
 
-    const [passcode, setPasscode] = useState('');
-    const [userID, setUserID] = useState('');
-    const [userPassword, setUserPassword] = useState('');
-    const [userPasscode, setUserPasscode] = useState('');
-    const [saving, setSaving] = useState(false);
-    const [saveState, setSaveState] = useState('');
-    const [saveErrorMsg, setSaveErrorMsg] = useState('');
+    const [wsConnected, setWsConnected] = useState<boolean>(false);
+    const [code, setCode] = useState<string>('');
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
@@ -27,6 +22,84 @@ export default function RegisterEnc() {
             router.replace('/login');
         }
     }, [router, account]);
+    useEffect(() => {
+        const socket = new WebSocket(`ws${location.hostname === 'localhost' ? '' : 's'}://${location.hostname}:${process.env.NEXT_PUBLIC_WS_PORT || location.port}/enc_setup_new`);
+        let keyPair: CryptoKeyPair | null = null;
+        let ecdhKey: CryptoKey | null = null;
+        socket.addEventListener('open', () => {
+            setWsConnected(true);
+        });
+        socket.addEventListener('message', ({ data }) => {
+            const msg = JSON.parse(data.toString());
+            switch (msg.type) {
+                case 'auth':
+                    socket.send(JSON.stringify({
+                        type: 'auth',
+                        token: account!.token
+                    }));
+                    break;
+                case 'code':
+                    setCode(msg.data.newCode);
+                    break;
+                case 'start':
+                    crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']).then(key => {
+                        crypto.subtle.exportKey('raw', key.publicKey).then(rawKey => {
+                            keyPair = key;
+                            socket.send(JSON.stringify({
+                                type: 'ecdh_key',
+                                key: btoa(String.fromCharCode(...new Uint8Array(rawKey)))
+                            }));
+                        });
+                    })
+                    break;
+                case 'ecdh':
+                    const keyBin = atob(msg.data.key);
+                    const keyBuf = new Uint8Array(keyBin.length);
+                    for (let i = 0; i < keyBin.length; i++) {
+                        keyBuf[i] = keyBin.charCodeAt(i);
+                    }
+                    crypto.subtle.importKey('raw', keyBuf.buffer, { name: 'ECDH', namedCurve: 'P-256' }, false, []).then(key => {
+                        crypto.subtle.deriveBits({ name: 'ECDH', public: key }, keyPair!.privateKey, 256).then(derivedBits => {
+                            crypto.subtle.importKey('raw', derivedBits, { name: 'AES-GCM', length: 256 }, false, ['decrypt']).then(derivedKey => {
+                                ecdhKey = derivedKey;
+                                socket.send(JSON.stringify({
+                                    type: 'ecdh_done'
+                                }));
+                            });
+                        });
+                    });
+                    break;
+                case 'data':
+                    const dataBin = atob(msg.data.data);
+                    const dataBuf = new Uint8Array(dataBin.length);
+                    for (let i = 0; i < dataBin.length; i++) {
+                        dataBuf[i] = dataBin.charCodeAt(i);
+                    }
+                    crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']).then(async (newKey) => {
+                        crypto.subtle.decrypt({ name: 'AES-GCM', iv: new TextEncoder().encode(msg.data.iv) }, ecdhKey!, dataBuf.buffer).then(decrypted => {
+                            const iv = crypto.randomUUID().split('-').reverse()[0];
+                            crypto.subtle.encrypt({ name: 'AES-GCM', iv: new TextEncoder().encode(iv) }, newKey, decrypted).then(enc => {
+                                crypto.subtle.exportKey('jwk', newKey).then(jwk => {
+                                    localStorage.setItem('key', JSON.stringify(jwk));
+                                    localStorage.setItem('iv', iv);
+                                    const encBin = btoa(String.fromCharCode(...new Uint8Array(enc)));
+                                    socket.send(JSON.stringify({
+                                        type: 'enc_data',
+                                        data: encBin
+                                    }));
+                                });
+                            });
+                        });
+                    });
+                    break;
+                case 'complete':
+                    router.replace('/pdf');
+                    break;
+            }
+        });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    console.log(code)
 
     return (
         <div className="w-full lg:w-[80%] md:grid md:grid-cols-2 md:gap-2 ml-auto mr-auto">
@@ -36,67 +109,15 @@ export default function RegisterEnc() {
             </div>
             <div className="lg:mt-24">
                 <p className="kor">PDF를 다운로드하려면 암호화 설정이 필요합니다.</p>
+                <p className="kor">이미 암호화 설정된 디바이스에서 메뉴-계정-정보 수정-PDF 암호화-새 기기 설정으로 이동하세요.</p>
                 <p className="eng">Encryption setup is required to download PDFs.</p>
+                <p className="eng">On another device with encryption already set up, go to Menu - Account - Edit Info - PDF Encryption - Setup New Device.</p>
                 <br />
-                <label htmlFor="passcode" className="kor">{'사용할 암호(숫자 6자리)'}</label>
-                <label htmlFor="passcode" className="eng">{'New passcode(6-digit numeric)'}</label>
+                <label htmlFor="code" className="kor">{'설정 코드'}</label>
+                <label htmlFor="code" className="eng">{'Setup Code'}</label>
                 <br />
-                <input type="text" id="passcode" value={passcode} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242] [-webkit-text-security:disc]" onChange={e => {
-                    if (e.currentTarget.value === '' || /[0-9]+/.test(e.currentTarget.value) && e.currentTarget.value.length <= 6) setPasscode(e.currentTarget.value);
-                }} />
-                <br /><br />
-                <label htmlFor="userid" className="kor">{'암호화 설정된 다른 사용자 ID'}</label>
-                <label htmlFor="userid" className="eng">{'ID of another user with encryption enabled'}</label>
-                <br />
-                <input type="text" id="userid" value={userID} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242] [-webkit-text-security:disc]" onChange={e => {
-                    setUserID(e.currentTarget.value);
-                }} />
-                <br /><br />
-                <label htmlFor="userpassword" className="kor">{'해당 유저의 로그인 비밀번호'}</label>
-                <label htmlFor="userpassword" className="eng">{'Login password for that user'}</label>
-                <br />
-                <input type="password" id="userid" value={userPassword} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242]" onChange={e => {
-                    setUserPassword(e.currentTarget.value);
-                }} />
-                <br /><br />
-                <label htmlFor="userpass" className="kor">{'해당 유저의 암호'}</label>
-                <label htmlFor="userpass" className="eng">{'Passcode for that user'}</label>
-                <br />
-                <input type="text" id="userpass" value={userPasscode} className="border border-slate-400 h-12 rounded-lg p-4 w-[70%] dark:bg-[#424242] [-webkit-text-security:disc]" onChange={e => {
-                    if (e.currentTarget.value === '' || /[0-9]+/.test(e.currentTarget.value) && e.currentTarget.value.length <= 6) setUserPasscode(e.currentTarget.value);
-                }} />
-                <br /><br />
-                <button disabled={saving} className="w-[20%] mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={e => {
-                        e.preventDefault();
-                        setSaving(true);
-                        fetch('/api/pdf/setup', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', Authorization: account!.token! },
-                            body: JSON.stringify({
-                                passcode,
-                                userID,
-                                userPassword,
-                                userPasscode
-                            })
-                        }).then(async res => {
-                            if (res.ok) {
-                                router.push('/pdf');
-                            } else {
-                                setSaving(false);
-                                setSaveState('저장 실패');
-                                setSaveErrorMsg((await res.json()).msg);
-                            }
-                        }).catch(() => {
-                            setSaving(false);
-                            setSaveState('저장 실패');
-                            setSaveErrorMsg(deviceLang === 1 ? 'You\'re Offline' : '오프라인 상태');
-                        });
-                    }}>
-                        <span className="kor">저장</span>
-                        <span className="eng">Save</span>
-                    </button>
-                    <br />
-                    {saveState !== '' && <div className="text-red-500">{saveErrorMsg}</div>}
+                <h1 className="text-4xl font-bold kor">{code == '' ? '연결 중' : code}</h1>
+                <h1 className="text-4xl font-bold eng">{code == '' ? 'Connecting' : code}</h1>
             </div>
         </div>
     );
