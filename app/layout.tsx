@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import localFont from "next/font/local";
-import { Lilita_One } from "next/font/google";
 
 import Header from "./header";
 
@@ -12,12 +11,6 @@ const Pretendard = localFont({
   src: '../public/PretendardVariable.woff2',
   weight: "45 920",
   display: "swap"
-});
-
-const LilitaOne = Lilita_One({
-  weight: "400",
-  display: "swap",
-  subsets: ["latin"]
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -62,7 +55,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" style={{ fontFamily: `${LilitaOne.style.fontFamily}, ${Pretendard.style.fontFamily}, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif` }}>
+    <html lang="ko" style={{ fontFamily: `${Pretendard.style.fontFamily}, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif` }}>
       <body>
         <Header />
         <main className="w-[90%] mt-4 ml-auto mr-auto">
