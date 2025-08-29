@@ -32,16 +32,22 @@ wss.on('connection', (ws, req) => {
                         ws.send(JSON.stringify({ type: 'unauthorized' }));
                         ws.close();
                     } else {
-                        authenticated = true;
-                        token = msg.token;
-                        id = session.id;
-                        let newCode = '';
-                        do {
-                            newCode = new Array(6).fill(0).map(() => Math.floor(Math.random() * 26) + 65).map(x => String.fromCharCode(x)).join('');
-                        } while (newClients.has(newCode));
-                        newClients.set(newCode, ws);
-                        code = newCode;
-                        ws.send(JSON.stringify({ type: 'code', data: { newCode } }));
+                        const user = await usersCollection.findOne({ id: session.id });
+                        if (!user || !user.accepted) {
+                            ws.send(JSON.stringify({ type: 'unauthorized' }));
+                            ws.close();
+                        } else {
+                            authenticated = true;
+                            token = msg.token;
+                            id = session.id;
+                            let newCode = '';
+                            do {
+                                newCode = new Array(6).fill(0).map(() => Math.floor(Math.random() * 26) + 65).map(x => String.fromCharCode(x)).join('');
+                            } while (newClients.has(newCode));
+                            newClients.set(newCode, ws);
+                            code = newCode;
+                            ws.send(JSON.stringify({ type: 'code', data: { newCode } }));
+                        }
                     }
                     break;
                 case 'ecdh_key':
