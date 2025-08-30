@@ -41,7 +41,12 @@ export async function POST(request: Request) {
             expectedChallenge: sessionData.challenge,
             expectedOrigin: process.env.NEXT_PUBLIC_URL || 'http://localhost:3000',
             expectedRPID: new URL('/', process.env.NEXT_PUBLIC_URL || 'http://localhost:3000').hostname,
-            authenticator,
+            credential: {
+                id: authenticator.credentialID,
+                publicKey: authenticator.credentialPublicKey,
+                counter: authenticator.counter,
+                transports: authenticator.transports
+            },
             requireUserVerification: false
         });
         const { verified } = verification;

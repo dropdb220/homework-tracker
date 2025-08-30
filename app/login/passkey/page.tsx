@@ -78,7 +78,7 @@ export default function LoginPhase1() {
                     fetch('/api/passkey/login/prepare')
                         .then(res => res.json())
                         .then((data) => {
-                            startAuthentication(data.options)
+                            startAuthentication({ optionsJSON: data.options })
                                 .then(authResp => {
                                     fetch('/api/passkey/login', {
                                         method: 'POST',

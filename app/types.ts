@@ -1,4 +1,4 @@
-import type { AuthenticatorTransportFuture, CredentialDeviceType } from '@simplewebauthn/types';
+import type { AuthenticatorTransportFuture, CredentialDeviceType } from '@simplewebauthn/browser';
 import type { Binary } from 'mongodb';
 
 export type LSAccount = {

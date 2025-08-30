@@ -13,9 +13,8 @@
     "start-ws": "NODE_ENV=production node wsdist/index.mjs"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^10.0.0",
-    "@simplewebauthn/server": "^10.0.0",
-    "@simplewebauthn/types": "^10.0.0",
+    "@simplewebauthn/browser": "^13.1.2",
+    "@simplewebauthn/server": "^13.1.2",
     "@types/mime-types": "^2.1.4",
     "@types/react-syntax-highlighter": "^15.5.11",
     "comcigan.js": "^1.1.3",

@@ -67,7 +67,7 @@ wss.on('connection', (ws, req) => {
                         ws.send(JSON.stringify({ type: 'error', msg: 'Invalid data' }));
                         return;
                     }
-                    tokensCollection.updateOne({ token }, { $set: { encv2: msg.data } }).then(() => {
+                    tokensCollection.updateOne({ token }, { $set: { encv2: msg.data, prf: true } }).then(() => {
                         usersCollection.updateOne({ id }, { $set: { encv2: true }, $unset: { enc: '', salt2: '', iv: '' } }).then(() => {
                             ws.send(JSON.stringify({ type: 'complete' }));
                             oldClients.get(code)?.send(JSON.stringify({ type: 'complete' }));

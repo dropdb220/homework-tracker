@@ -31,6 +31,7 @@ export default function MyAccountEditpage() {
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
+    const [encv2prf, setEncv2prf] = useLocalStorage<boolean>('encv2prf', false);
 
     useEffect(() => {
         setIsClient(true);
@@ -195,24 +196,35 @@ export default function MyAccountEditpage() {
                     <label htmlFor="enc" className="kor">PDF 암호화</label>
                     <label htmlFor="enc" className="eng">PDF Encryption</label>
                     <br />
-                    {(hasEnc && !!localStorage.getItem('key') && !!localStorage.getItem('iv')) ?
+                    {isClient && encv2prf ?
                         <>
                             <p className="kor">등록됨</p>
                             <p className="eng">Registered</p>
                             <Link href="/pdf/help">
                                 <button id="enc" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
                                     <span className="kor">새 기기 설정</span>
-                                    <span className="eng">Setup New Devices</span>
+                                    <span className="eng">Setup New Device</span>
                                 </button>
                             </Link>
-                        </> : <>
-                            <Link href="/pdf/setup">
+                        </> : ((isClient && localStorage.getItem('key') && localStorage.getItem('iv')) ? <>
+                            <p className="kor">업그레이드 필요</p>
+                            <p className="eng">Upgrade Required</p>
+                            <Link href="/pdf/setup/add_prf">
                                 <button id="enc" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
-                                    <span className="kor">등록하기</span>
-                                    <span className="eng">Register</span>
+                                    <span className="kor">업그레이드</span>
+                                    <span className="eng">Upgrade</span>
                                 </button>
                             </Link>
-                        </>
+                        </> :
+                            <>
+                                <Link href="/pdf/setup">
+                                    <button id="enc" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
+                                        <span className="kor">등록하기</span>
+                                        <span className="eng">Register</span>
+                                    </button>
+                                </Link>
+                            </>
+                        )
                     }
                     <br /><br />
                     <label htmlFor="pwd" className="kor">비밀번호 변경</label>
@@ -461,7 +473,7 @@ export default function MyAccountEditpage() {
                             })
                     }
                 </div>
-            </div>
+            </div >
         </>
     );
 }

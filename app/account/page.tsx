@@ -21,6 +21,7 @@ export default function MyAccountInfoPage() {
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [notification, setNotification] = useLocalStorage<any>('notification', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
+    const [encv2prf, setEncv2prf] = useLocalStorage<boolean>('encv2prf', false);
 
     useEffect(() => {
         setIsClient(true);
@@ -129,6 +130,9 @@ export default function MyAccountInfoPage() {
                         }).then(async () => {
                             setAccount(null);
                             setNotification(null);
+                            setEncv2prf(false);
+                            localStorage.removeItem('key');
+                            localStorage.removeItem('iv');
                             if ('serviceWorker' in navigator) {
                                 const registration = await navigator.serviceWorker.ready;
                                 const subscription = await registration.pushManager.getSubscription();

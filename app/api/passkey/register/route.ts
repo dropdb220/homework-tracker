@@ -62,10 +62,8 @@ export async function POST(request: Request) {
         return new Response(JSON.stringify({ code: 1, msg: i18n.registerPKFailed[clientLang] }), { status: 500 });
     }
     const { registrationInfo } = verification;
+    const { id: credentialID, publicKey: credentialPublicKey, counter, transports } = registrationInfo!.credential;
     const {
-        credentialPublicKey,
-        credentialID,
-        counter,
         credentialDeviceType,
         credentialBackedUp
     } = registrationInfo!;
@@ -76,7 +74,7 @@ export async function POST(request: Request) {
         counter,
         credentialDeviceType,
         credentialBackedUp,
-        transports: credential.response.transports,
+        transports
     };
     const passkeysCollection = db.collection('users');
     // @ts-ignore

@@ -18,14 +18,46 @@ export default function PDFDownload() {
     const [cwd, setCwd] = useState<Array<string>>([]);
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [isClient, setIsClient] = useState(false);
+    const [isOffline, setIsOffline] = useState(false);
     const [showDlModal, setShowDlModal] = useState(false);
     const [fileName, setFileName] = useState('');
     const [fileID, setFileID] = useState('');
     const router = useRouter();
+    const [errorMsg, setErrorMsg] = useState('');
+    const [prfAvailable, setPrfAvailable] = useState(0);
+
+    const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
+    const [encv2prf, setEncv2prf] = useLocalStorage<boolean>('encv2prf', false);
 
     useEffect(() => {
         setIsClient(true);
     }, []);
+    useEffect(() => {
+        if (window.PublicKeyCredential &&
+            PublicKeyCredential.isConditionalMediationAvailable) {
+            PublicKeyCredential.isConditionalMediationAvailable().then(result => {
+                if (result === false) {
+                    localStorage.removeItem('key');
+                    localStorage.removeItem('iv');
+                }
+                setPrfAvailable(result ? 2 : 1);
+            });
+        } else {
+            setPrfAvailable(1);
+        }
+    }, [router]);
+    useEffect(() => {
+        if (isOffline) {
+            const interval = setInterval(() => {
+                fetch('/api/is_online').then(() => {
+                    setIsOffline(false);
+                }).catch(() => {
+                    setIsOffline(true);
+                });
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [isOffline]);
     useEffect(() => {
         if (!account || !account.token) router.replace('/');
         else fetch(`/api/check_token`, {
@@ -40,7 +72,10 @@ export default function PDFDownload() {
         })
     }, [router, account]);
     useEffect(() => {
-        if (!localStorage.getItem('key') || !localStorage.getItem('iv')) router.push('/pdf/setup');
+        if (!encv2prf) {
+            if (localStorage.getItem('key')) router.push('/pdf/setup/add_prf');
+            else router.push('/pdf/setup');
+        }
         fetch('/api/pdf/v2/dir', {
             method: 'POST',
             headers: {
@@ -58,40 +93,93 @@ export default function PDFDownload() {
                 setDirDEKEnc(data.dirDEK);
                 setDirDEKIV(data.dirDEKIV);
             }
+        }).catch(() => {
+            setIsOffline(true);
         });
-    }, [account, router]);
+    }, [account, router, encv2prf]);
     useEffect(() => {
-        if (encKey && dirIV && dirEnc && dirDEKEnc && dirDEKIV && localStorage.getItem('key') && localStorage.getItem('iv')) {
-            crypto.subtle.importKey('jwk', JSON.parse(localStorage.getItem('key')!), { name: 'AES-GCM' }, false, ['unwrapKey']).then(privKey => {
-                const encKeyBin = atob(encKey);
-                const encKeyBuf = new Uint8Array(encKeyBin.length);
-                for (let i = 0; i < encKeyBin.length; i++) {
-                    encKeyBuf[i] = encKeyBin.charCodeAt(i);
-                }
-                crypto.subtle.unwrapKey('raw', encKeyBuf.buffer, privKey, { name: 'AES-GCM', iv: new TextEncoder().encode(localStorage.getItem('iv')!) }, { name: 'AES-GCM' }, false, ['unwrapKey']).then(key => {
-                    const dirDEKBin = atob(dirDEKEnc);
-                    const dirDEKBuf = new Uint8Array(dirDEKBin.length);
-                    for (let i = 0; i < dirDEKBin.length; i++) {
-                        dirDEKBuf[i] = dirDEKBin.charCodeAt(i);
-                    }
-                    setKey(key);
-                    crypto.subtle.unwrapKey('raw', dirDEKBuf.buffer, key, { name: 'AES-GCM', iv: new TextEncoder().encode(dirDEKIV) }, { name: 'AES-GCM' }, false, ['decrypt']).then(dirDEK => {
-                        const dirEncBin = atob(dirEnc);
-                        const dirEncBuf = new Uint8Array(dirEncBin.length);
-                        for (let i = 0; i < dirEncBin.length; i++) {
-                            dirEncBuf[i] = dirEncBin.charCodeAt(i);
+        if (prfAvailable === 1) {
+            router.push('/pdf/setup');
+            return;
+        }
+    }, [prfAvailable, router]);
+    useEffect(() => {
+        if (prfAvailable !== 2) return;
+        if (encKey && dirIV && dirEnc && dirDEKEnc && dirDEKIV && encv2prf && localStorage.getItem('iv')) {
+            navigator.credentials.get({
+                publicKey: {
+                    challenge: new Uint8Array(32).fill(0),
+                    timeout: 60000,
+                    userVerification: 'required',
+                    rpId: new URL('/', process.env.NEXT_PUBLIC_URL || 'http://localhost:3000').hostname,
+                    extensions: {
+                        prf: {
+                            eval: {
+                                first: new TextEncoder().encode('Data Encryption')
+                            }
                         }
-                        crypto.subtle.decrypt({ name: 'AES-GCM', iv: new TextEncoder().encode(dirIV) }, dirDEK, dirEncBuf.buffer).then(decrypted => {
-                            const dirData = JSON.parse(new TextDecoder().decode(decrypted));
-                            setDir(dirData);
+                    }
+                }
+            }).then(async authResp => {
+                if (!authResp || !(authResp as PublicKeyCredential).getClientExtensionResults) {
+                    setErrorMsg(deviceLang === 1 ? "Passkey authentication failed." : '패스키 인증에 실패했습니다.');
+                } else {
+                    const clientExt = (authResp as PublicKeyCredential).getClientExtensionResults();
+                    if (!clientExt || !clientExt.prf || (typeof clientExt.prf === 'object' && Object.keys(clientExt.prf).length === 0) || !clientExt.prf.results?.first) {
+                        setErrorMsg(deviceLang === 1 ? "Passkey authentication failed." : '패스키 인증에 실패했습니다.');
+                    } else {
+                        const prfValue = clientExt.prf.results.first;
+                        const key1 = await crypto.subtle.importKey('raw', prfValue, { name: 'HKDF' }, false, ['deriveKey']);
+                        const key2 = await crypto.subtle.deriveKey({
+                            name: 'HKDF',
+                            hash: 'SHA-256',
+                            salt: new Uint8Array(32).fill(0),
+                            info: new TextEncoder().encode('Data Encryption')
+                        }, key1, { name: 'AES-GCM', length: 256 }, false, ['unwrapKey']);
+                        const encKeyBin = atob(encKey);
+                        const encKeyBuf = new Uint8Array(encKeyBin.length);
+                        for (let i = 0; i < encKeyBin.length; i++) {
+                            encKeyBuf[i] = encKeyBin.charCodeAt(i);
+                        }
+                        crypto.subtle.unwrapKey('raw', encKeyBuf.buffer, key2, { name: 'AES-GCM', iv: new TextEncoder().encode(localStorage.getItem('iv')!) }, { name: 'AES-GCM' }, false, ['unwrapKey']).then(key => {
+                            const dirDEKBin = atob(dirDEKEnc);
+                            const dirDEKBuf = new Uint8Array(dirDEKBin.length);
+                            for (let i = 0; i < dirDEKBin.length; i++) {
+                                dirDEKBuf[i] = dirDEKBin.charCodeAt(i);
+                            }
+                            setKey(key);
+                            crypto.subtle.unwrapKey('raw', dirDEKBuf.buffer, key, { name: 'AES-GCM', iv: new TextEncoder().encode(dirDEKIV) }, { name: 'AES-GCM' }, false, ['decrypt']).then(dirDEK => {
+                                const dirEncBin = atob(dirEnc);
+                                const dirEncBuf = new Uint8Array(dirEncBin.length);
+                                for (let i = 0; i < dirEncBin.length; i++) {
+                                    dirEncBuf[i] = dirEncBin.charCodeAt(i);
+                                }
+                                crypto.subtle.decrypt({ name: 'AES-GCM', iv: new TextEncoder().encode(dirIV) }, dirDEK, dirEncBuf.buffer).then(decrypted => {
+                                    const dirData = JSON.parse(new TextDecoder().decode(decrypted));
+                                    setDir(dirData);
+                                });
+                            });
                         });
-                    });
-                });
+                    }
+                }
             });
         }
-    }, [encKey, dirIV, dirEnc, account, router, dirDEKEnc, dirDEKIV]);
+    }, [encKey, dirIV, dirEnc, account, router, dirDEKEnc, dirDEKIV, deviceLang, encv2prf, prfAvailable]);
 
-    return (
+    return isOffline ? (
+        <>
+            <div className="kor">
+                <Image src="/offline.svg" alt="오프라인 상태" width={150} height={150} className="mt-2 mb-8 ml-auto mr-auto dark:invert" />
+                <h2>오프라인 상태입니다.</h2>
+                <p>로그인하려면 인터넷 연결이 필요합니다.</p>
+            </div>
+            <div className="eng">
+                <Image src="/offline.svg" alt="Offline" width={150} height={150} className="mt-2 mb-8 ml-auto mr-auto dark:invert" />
+                <h2>You{'\''}re offline.</h2>
+                <p>An active internet connection is required to login.</p>
+            </div>
+        </>
+    ) : (
         <>
             {
                 !dir && (

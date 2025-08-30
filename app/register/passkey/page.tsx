@@ -60,7 +60,7 @@ export default function RegisterPasskey() {
                         res.json().then(async data => {
                             let attResp;
                             try {
-                                attResp = await startRegistration(data.options);
+                                attResp = await startRegistration({ optionsJSON: data.options });
                                 console.log('registered')
                                 const verificationResp = await fetch('/api/passkey/register', {
                                     method: 'POST',

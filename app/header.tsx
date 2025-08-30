@@ -7,15 +7,18 @@ import { useEffect, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 
 import type { LSAccount } from './types';
+import { set } from 'date-fns';
 
 export default function Header() {
-    const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [isValidToken, setIsValidToken] = useState(false);
     const [showUtilMenu, setShowUtilMenu] = useState(false);
     const [isUnlockingPDF, setIsUnlockingPDF] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [lang, setLang] = useLocalStorage('lang', -1);
     const [isClient, setIsClient] = useState(false)
+
+    const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
+    const [encv2prf, setEncv2prf] = useLocalStorage<boolean>('encv2prf', false);
 
     useEffect(() => {
         setIsClient(true);
@@ -47,13 +50,16 @@ export default function Header() {
                     });
                 } else {
                     setIsValidToken(false);
+                    setEncv2prf(false);
+                    localStorage.removeItem('key');
+                    localStorage.removeItem('iv');
                     setAccount(null);
                 }
             }).catch(() => {
                 setIsValidToken(true);
             });
         }
-    }, [account, setAccount, setLang]);
+    }, [account, setAccount, setLang, setEncv2prf]);
 
     return (
         <>

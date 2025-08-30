@@ -31,18 +31,10 @@ export default function LoginPhase1() {
         setIsClient(true);
     }, []);
     useEffect(() => {
-        if ((/iPhone|iPad/.test(navigator.userAgent) || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1)) && window.PublicKeyCredential &&
-            PublicKeyCredential.isConditionalMediationAvailable) {
-            PublicKeyCredential.isConditionalMediationAvailable().then(result => {
-                if (result) router.replace('/login/passkey');
-            });
-        }
-    }, [router]);
-    useEffect(() => {
         fetch('/api/passkey/login/prepare')
             .then(res => res.json())
             .then((data) => {
-                startAuthentication(data.options, true)
+                startAuthentication({ optionsJSON: data.options, useBrowserAutofill: true })
                     .then(authResp => {
                         fetch('/api/passkey/login', {
                             method: 'POST',
