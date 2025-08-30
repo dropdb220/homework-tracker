@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cache-v97';
+const CACHE_NAME = 'cache-v99';
 const UPLOAD_PERMANENT_CACHE_NAME = 'upload-cache';
 
 self.addEventListener('install', event => {
@@ -71,7 +71,8 @@ self.addEventListener('activate', event => {
                 '/apple-icon2.png',
                 '/favicon.ico',
                 '/pushicon.png',
-                '/PretendardVariable.woff2'
+                '/PretendardVariable.woff2',
+                '/login_background.png'
             ]);
         })
     );

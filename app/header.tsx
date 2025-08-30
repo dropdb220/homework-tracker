@@ -89,8 +89,8 @@ export default function Header() {
                     <img src="/icon3.png" alt={process.env.NEXT_PUBLIC_TITLE_EN || process.env.NEXT_PUBLIC_TITLE || 'Homework Tracker'} width={48} height={48} className="h-12 w-12 eng" />
                     <div className="grid grid-rows-[1fr_auto_1fr] h-12">
                         <div></div>
-                        <span className="kor ml-2 text-3xl font-semibold">{process.env.NEXT_PUBLIC_TITLE || '숙제 트래커'}</span>
-                        <span className="eng ml-2 text-3xl font-semibold">{process.env.NEXT_PUBLIC_TITLE_EN || process.env.NEXT_PUBLIC_TITLE || 'Homework Tracker'}</span>
+                        <span className="kor ml-2 text-3xl font-semibold" id="logo_text">{process.env.NEXT_PUBLIC_TITLE || '숙제 트래커'}</span>
+                        <span className="eng ml-2 text-3xl font-semibold" id="logo_text">{process.env.NEXT_PUBLIC_TITLE_EN || process.env.NEXT_PUBLIC_TITLE || 'Homework Tracker'}</span>
                         <div></div>
                     </div>
                 </Link>
