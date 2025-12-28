@@ -92,5 +92,24 @@
 
     "#comment11": "OneDrive related strings",
     "oneDriveError": ["OneDrive 관련 오류가 발생했습니다. 관리자에게 문의하세요.", "An error related to OneDrive occurred. Please contact the administrator."],
-    "nonExistentFile": ["존재하지 않는 파일입니다.", "The file does not exist."]
+    "nonExistentFile": ["존재하지 않는 파일입니다.", "The file does not exist."],
+
+    "#comment12": "Security related strings",
+    "noDevice": ["기기 정보가 필요합니다.", "Device information is required."],
+    "nonExistentDevice": ["존재하지 않는 기기입니다.", "The device does not exist."],
+
+    "#comment13": "Devices and Browsers",
+    "device0": ["알 수 없는 기기", "Unknown Device"],
+    "device1": ["Windows 컴퓨터", "Windows PC"],
+    "device2": ["Mac", "Mac"],
+    "device3": ["Linux 기기", "Linux Device"],
+    "device4": ["iPhone", "iPhone"],
+    "device5": ["iPad", "iPad"],
+    "device6": ["Android 기기", "Android Device"],
+    "browser0": ["알 수 없는 브라우저", "Unknown Browser"],
+    "browser1": ["Chrome", "Chrome"],
+    "browser2": ["Firefox", "Firefox"],
+    "browser3": ["Safari", "Safari"],
+    "browser4": ["Edge", "Edge"],
+    "browser5": ["삼성 인터넷", "Samsung Internet"]
 }

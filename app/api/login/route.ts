@@ -41,8 +41,25 @@ export async function POST(request: Request) {
             for (let i = 0; i < 64; i++) {
                 token += Math.floor(Math.random() * 16).toString(16);
             }
+            const UAString = request.headers.get('User-Agent') || '';
+            let device = 0;
+            if (UAString.includes('Windows')) device = 1;
+            else if (UAString.includes('Macintosh')) {
+                if (request.headers.get('X-Is-Mobile') === '1') device = 5;
+                else device = 2;
+            }
+            else if (UAString.includes('Linux')) device = 3;
+            else if (UAString.includes('iPhone')) device = 4;
+            else if (UAString.includes('iPad')) device = 5;
+            else if (UAString.includes('Android')) device = 6;
+            let browser = 0;
+            if (UAString.includes('Edg')) browser = 4
+            else if (UAString.includes('SamsungBrowser')) browser = 5
+            else if (UAString.includes('Chrome') || UAString.includes('CriOS')) browser = 1
+            else if (UAString.includes('Firefox')) browser = 2
+            else if (UAString.includes('Safari')) browser = 3
             const tokenCollection = db.collection('tokens');
-            await tokenCollection.insertOne({ id: user.id, token });
+            await tokenCollection.insertOne({ id: user.id, token, issuedAt: new Date(), lastAccess: new Date(), device, browser });
             client.close();
             return new Response(JSON.stringify({ code: 0, id, token }), { status: 200 });
         }

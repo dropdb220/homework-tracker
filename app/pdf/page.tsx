@@ -63,7 +63,8 @@ export default function PDFDownload() {
         else fetch(`/api/check_token`, {
             method: 'GET',
             headers: {
-                Authorization: account.token
+                Authorization: account.token,
+                'X-Is-Mobile': navigator.maxTouchPoints > 0 ? '1' : '0'
             }
         }).then(response => {
             if (!response.ok) {

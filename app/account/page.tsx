@@ -89,6 +89,16 @@ export default function MyAccountInfoPage() {
                 <p className="text-sm eng">Name</p>
                 <p className="text-xl">{accountInfo?.firstName} {accountInfo?.lastName}</p>
                 <br />
+                <p className="text-sm kor">기기 목록</p>
+                <p className="text-sm eng">Devices</p>
+                <Link href="/account/devices">
+                    <button id="devices" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
+                        <span className="kor">기기 목록 보기</span>
+                        <span className="eng">View Devices</span>
+                    </button>
+                </Link>
+                <br />
+                <br />
                 <p className="text-sm kor">권한</p>
                 <p className="text-sm eng">Permissions</p>
                 <p className="text-xl">{permToString[accountInfo?.perm ?? 3]}</p>

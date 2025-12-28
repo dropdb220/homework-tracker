@@ -39,7 +39,8 @@ export default function LoginPhase1() {
                         fetch('/api/passkey/login', {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json'
+                                'Content-Type': 'application/json',
+                                'X-Is-Mobile': navigator.maxTouchPoints > 0 ? '1' : '0'
                             },
                             body: JSON.stringify({ session: data.session, response: authResp })
                         })

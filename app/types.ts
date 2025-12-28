@@ -88,3 +88,12 @@ export type PasskeySerialized = {
     // Ex: ['ble' | 'cable' | 'hybrid' | 'internal' | 'nfc' | 'smart-card' | 'usb']
     transports?: AuthenticatorTransportFuture[];
 };
+
+export type Device = {
+    deviceID: string;
+    issuedAt: string;
+    lastAccess: string;
+    device: string;
+    browser: string;
+    isMySession: boolean;
+}

@@ -37,7 +37,7 @@ export default function Header() {
     useEffect(() => {
         if (account && account.token) {
             fetch('/api/check_token', {
-                headers: { Authorization: account.token }
+                headers: { Authorization: account.token, 'X-Is-Mobile': navigator.maxTouchPoints > 0 ? '1' : '0' }
             }).then(async res => {
                 if (res.ok) {
                     setIsValidToken(true);
