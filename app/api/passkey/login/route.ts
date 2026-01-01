@@ -1,6 +1,8 @@
 import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { MongoClient, Binary } from 'mongodb';
-import i18n from '@/app/i18n.json';
+import { setVapidDetails, sendNotification } from 'web-push';
+import _i18n from '@/app/i18n.json';
+const i18n: { [key: string]: string | string[] } = _i18n;
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +80,15 @@ export async function POST(request: Request) {
         const tokenCollection = db.collection('tokens');
         await tokenCollection.insertOne({ id: passkey.id, token, issuedAt: new Date(), lastAccess: new Date(), device, browser });
         await usersCollection.updateOne({ id: passkey.id }, { $set: { passkeys: passkey.passkeys.map((x: any) => x.credentialID.replace(/\=/gi, '').replace(/\+/gi, '-').replace(/\//gi, '_') === response.id ? { ...x, counter: verification.authenticationInfo.newCounter } : x) } });
+        setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
+        passkey.subscriptions.forEach(async (sub: any) => {
+            sendNotification(sub, JSON.stringify([{
+                title: passkey.lang == 1 ? 'New Login' : `로그인 알림`,
+                body: passkey.lang == 1 ? `You account was logged in from ${i18n[`browser${browser}`]![1]} on ${i18n[`device${device}`]![1]}.` : `${i18n[`device${device}`]![0]}의 ${i18n[`browser${browser}`]![0]}에서 로그인되었습니다.`,
+                tag: 'login-notification',
+                url: `/account/devices`
+            }])).catch(() => { });
+        });
         client.close();
         return new Response(JSON.stringify({ code: 0, id: passkey.id, token }), { status: 200 });
     } catch (e: any) {

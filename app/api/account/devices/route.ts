@@ -1,6 +1,4 @@
 import { MongoClient, ObjectId } from "mongodb";
-import { sendNotification, setVapidDetails } from "web-push";
-import { postType, postTypeEn } from "@/app/types";
 import _i18n from "@/app/i18n.json";
 import { NextRequest } from "next/server";
 const i18n: { [key: string]: string | string[] } = _i18n;
