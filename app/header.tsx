@@ -123,6 +123,14 @@ export default function Header() {
                                             <span className="eng">Download PDF</span>
                                         </button>
                                     </Link>
+                                    {process.env.NEXT_PUBLIC_WIFI_ENABLED == '1' && account && account.token && isValidToken &&
+                                        <Link href="/wifi.mobileconfig">
+                                            <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => { setShowMobileMenu(false); }}>
+                                                <span className="kor">Wi-Fi 연결</span>
+                                                <span className="eng">Connect to Wi-Fi</span>
+                                            </button>
+                                        </Link>
+                                    }
                                     {process.env.NEXT_PUBLIC_QNA_ENABLED == '1' &&
                                         <Link href="/question">
                                             <button className="p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => { setShowUtilMenu(false); }}>
@@ -199,6 +207,14 @@ export default function Header() {
                                             <span className="eng">Download PDF</span>
                                         </button>
                                     </Link>
+                                    {process.env.NEXT_PUBLIC_WIFI_ENABLED == '1' && account && account.token && isValidToken &&
+                                        <Link href="/wifi.mobileconfig">
+                                            <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => { setShowMobileMenu(false); }}>
+                                                <span className="kor">Wi-Fi 연결</span>
+                                                <span className="eng">Connect to Wi-Fi</span>
+                                            </button>
+                                        </Link>
+                                    }
                                     {process.env.NEXT_PUBLIC_QNA_ENABLED == '1' && account && account.token && isValidToken &&
                                         <Link href="/question">
                                             <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => { setShowMobileMenu(false); }}>
