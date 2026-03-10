@@ -35,6 +35,8 @@ export default function UpdatePost(props: { params: Promise<{ idx: string }> }) 
     const [isUploading, setIsUploading] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
     const [isClient, setIsClient] = useState(false);
+    const [deadlineType, setDeadlineType] = useState<'deadline' | 'deadline2'>('deadline');
+    const [deadline2, setDeadline2] = useState<{ subject: string, deadlines: { time: string, deadline: string }[] }>({ subject: '...', deadlines: [] });
 
     const [account, setAccount] = useLocalStorage<LSAccount | null>('account', null);
     const [deviceLang, setDeviceLang] = useLocalStorage<number>('lang', 0);
@@ -57,8 +59,10 @@ export default function UpdatePost(props: { params: Promise<{ idx: string }> }) 
                     setTitleKo(data.title_ko);
                     setTitleEn(data.title_en);
                     setType(data.type.toString());
-                    setHasDeadline(data.deadline !== null);
-                    setDeadline(data.deadline ? new Date(new Date(data.deadline).setHours(9, 0, 0, 0)).toISOString().split('T')[0] : '');
+                    setHasDeadline(data.deadline !== null || data.deadline2 !== null);
+                    setDeadlineType(data.deadline2 ? 'deadline2' : 'deadline');
+                    setDeadline((data.deadline && !data.deadline2) ? new Date(new Date(data.deadline).setHours(9, 0, 0, 0)).toISOString().split('T')[0] : '');
+                    setDeadline2(data.deadline2 ? { subject: data.deadline2.subject, deadlines: data.deadline2.deadlines.map((x: any) => x.time).map((key: string) => ({ time: key, deadline: new Date(new Date(data.deadline2.deadlines.find((x: any) => x.time === key).deadline).setHours(9, 0, 0, 0)).toISOString().split('T')[0] })) } : { subject: '...', deadlines: [] });
                     setContentKo(data.content_ko);
                     setContentEn(data.content_en);
                 });
@@ -106,14 +110,86 @@ export default function UpdatePost(props: { params: Promise<{ idx: string }> }) 
                 }
             </select>
             <div className="w-0 h-4 sm:inline"></div>
-            <input type="checkbox" id="has_deadline" checked={hasDeadline} className="sm:ml-8 mr-2 h-4 w-4" onChange={e => {
-                setHasDeadline(e.currentTarget.checked);
-            }} />
-            <label htmlFor="deadline" className="kor">마감 기한: </label>
-            <label htmlFor="deadline" className="eng">Deadline: </label>
-            <input type="date" id="deadline" className="border border-slate-400 rounded-lg p-2 dark:bg-[#424242] ml-2" disabled={!hasDeadline} value={deadline} onChange={e => {
-                setDeadline(e.currentTarget.value);
-            }} />
+            <br />
+            <label htmlFor="deadline">
+                <span className="kor">마감 기한</span>
+                <span className="eng">Deadline</span>
+            </label>
+            <span id="deadline" className="ml-2">
+                <input type="radio" name="deadline_type" value="deadline" checked={hasDeadline === false} id="deadline_simple" onChange={() => { setHasDeadline(false) }} />
+                <label htmlFor="deadline_simple" className="ml-2 mr-4">
+                    <span className="kor">없음</span>
+                    <span className="eng">None</span>
+                </label>
+                <input type="radio" name="deadline_type" value="deadline" checked={hasDeadline && deadlineType === 'deadline'} id="deadline_simple" onChange={() => { setHasDeadline(true); setDeadlineType('deadline') }} />
+                <label htmlFor="deadline_simple" className="ml-2 mr-4">
+                    <span className="kor">단순</span>
+                    <span className="eng">Basic</span>
+                </label>
+                <input type="radio" name="deadline_type" value="deadline2" checked={hasDeadline && deadlineType === 'deadline2'} id="deadline_complex" onChange={() => { setHasDeadline(true); setDeadlineType('deadline2') }} />
+                <label htmlFor="deadline_complex" className="ml-2">
+                    <span className="kor">상세</span>
+                    <span className="eng">Advanced</span>
+                </label>
+            </span>
+            <div className={`${hasDeadline && deadlineType === 'deadline' ? "block" : "hidden"}`}>
+                <br />
+                <input type="date" className="border border-slate-400 rounded-lg p-2 dark:bg-[#424242] ml-2" value={deadline} onChange={e => {
+                    setDeadline(e.currentTarget.value);
+                }} />
+            </div>
+            <div className={`${hasDeadline && deadlineType === 'deadline2' ? "block" : "hidden"}`}>
+                <br />
+                <label htmlFor="subject_name">
+                    <span className="kor">과목: </span>
+                    <span className="eng">Subject: </span>
+                </label>
+                <select value={deadline2.subject} onChange={(e) => { setDeadline2({ ...deadline2, subject: e.currentTarget.value }) }}>
+                    {process.env.NEXT_PUBLIC_SUBJECTS!.split(',').map((subject) => {
+                        return <option key={subject} value={subject}>{subject}</option>
+                    })}
+                </select>
+                <br />
+                <div>
+                    {deadline2.deadlines.map((time: { time: string, deadline: string }, idx: number) => (
+                        <div key={idx} className="flex items-center">
+                            <select defaultValue={time.time} onChange={(e) => {
+                                setDeadline2(prev => {
+                                    prev.deadlines[idx].time = e.target.value; return { ...prev };
+                                })
+                            }}>
+                                {process.env.NEXT_PUBLIC_DEFAULT_SUBJECTS!.split(';').map((x: string) => x.split('=')[0]).map((subject) => {
+                                    return <option key={subject} value={subject}>{subject}</option>
+                                })}
+                            </select>
+                            <input type="date" className="border border-slate-400 rounded-lg p-2 dark:bg-[#424242] ml-2" value={time.deadline} onChange={e => {
+                                setDeadline2(prev => {
+                                    prev.deadlines[idx].deadline = e.target.value; return { ...prev };
+                                })
+                            }} />
+                            <button className="p-3 rounded-lg bg-red-500 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => {
+                                setDeadline2(prev => {
+                                    return {
+                                        subject: prev.subject,
+                                        deadlines: prev.deadlines.filter((_, i) => i !== idx)
+                                    }
+                                });
+                            }}>{'-'}</button>
+                        </div>
+                    ))}
+                    <button className="p-3 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => {
+                        setDeadline2(prev => {
+                            return {
+                                subject: prev.subject,
+                                deadlines: [...prev.deadlines, { time: 'A', deadline: '' }]
+                            }
+                        });
+                    }}>
+                        <span className="kor">{'+ 이동반 추가'}</span>
+                        <span className="eng">{'+ Add Class'}</span>
+                    </button>
+                </div>
+            </div>
             <br /><br />
         </div>
         <div>
@@ -234,12 +310,14 @@ export default function UpdatePost(props: { params: Promise<{ idx: string }> }) 
                 }
             });
         }} />
-        <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" disabled={titleKo === '' || contentKo === '' || (hasDeadline && deadline === '') || isOffline} onClick={e => {
+        <button className="float-right mr-0 p-3 mt-0 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3" disabled={titleKo === '' || contentKo === '' || (hasDeadline && deadline === '' && (deadline2.subject === '' || deadline2.deadlines.length === 0)) || isOffline} onClick={e => {
             e.preventDefault();
             const target = e.currentTarget;
             target.disabled = true;
             if (!titleKo || !contentKo) return;
-            if (hasDeadline && deadline === '') return;
+            if (hasDeadline && deadlineType === 'deadline' && deadline === '') return;
+            if (hasDeadline && deadlineType === 'deadline2' && (deadline2.subject === '' || deadline2.deadlines.length === 0)) return;
+            if (deadlineType === 'deadline2') setDeadline('');
             fetch(`/api/post/${params.idx}`, {
                 method: 'PUT',
                 headers: {
@@ -250,13 +328,24 @@ export default function UpdatePost(props: { params: Promise<{ idx: string }> }) 
                     title: titleKo,
                     title_en: titleEn,
                     type: Number(type),
-                    deadline: hasDeadline ? new Date(Number(deadline.split('-')[0]), Number(deadline.split('-')[1]) - 1, Number(deadline.split('-')[2])) : null,
+                    deadline: (hasDeadline && deadlineType === 'deadline') ? new Date(Number(deadline.split('-')[0]), Number(deadline.split('-')[1]) - 1, Number(deadline.split('-')[2])) : null,
+                    deadline2: (hasDeadline && deadlineType === 'deadline2') ? {
+                        subject: deadline2.subject, deadlines: deadline2.deadlines.map((x: any) => {
+                            return {
+                                time: x.time,
+                                deadline: new Date(Number(x.deadline.split('-')[0]), Number(x.deadline.split('-')[1]) - 1, Number(x.deadline.split('-')[2]))
+                            }
+                        })
+                    } : null,
                     content: contentKo,
                     content_en: contentEn
                 })
             }).then(response => {
-                if (response.ok) router.push(`/post/${params.idx}`);
-                else {
+                if (response.ok) {
+                    response.json().then(data => {
+                        router.push(`/post/${params.idx}`);
+                    })
+                } else {
                     target.disabled = false;
                     response.json().then(data2 => {
                         setErrorMsg(data2.msg);

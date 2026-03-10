@@ -35,9 +35,6 @@ export async function GET(request: Request) {
     }
     const postsCollection = db.collection('posts');
     let posts = await postsCollection.find().toArray();
-    await Promise.all(posts.filter(post => post.deadline && (new Date(post.deadline) as unknown as number <= (new Date() as unknown as number) - 1000 * 60 * 60 * 15)).map(async post => {
-        return postsCollection.deleteOne({ count: post.count });
-    }));
     const examsCollection = db.collection('exams');
     let exams = await examsCollection.find().toArray();
     await Promise.all(exams.filter(exam => new Date(exam.subjects.slice(-1)[0].date) as unknown as number <= (new Date() as unknown as number) - 1000 * 60 * 60 * 24).map(async exam => {
@@ -49,7 +46,9 @@ export async function GET(request: Request) {
         return csatCollection.deleteOne({ date: csat.date });
     }));
     client.close();
-    posts = posts.filter(post => !post.deadline || (new Date(post.deadline) as unknown as number > (new Date() as unknown as number) - 1000 * 60 * 60 * 15)).reverse();
+    posts = posts.map(p => {
+        return { ...p, deadline: p.deadline ? p.deadline : (p.deadline2 ? (p.deadline2.deadlines.find((x: any) => x.time === Object.keys(userData.subjects).find(time => p.deadline2.subject === userData.subjects[time])) ?? {"deadline": null}).deadline : null) }
+    }).filter(post => !post.deadline || (new Date(post.deadline) as unknown as number > (new Date() as unknown as number) - 1000 * 60 * 60 * 15)).reverse();
     const sortedPosts = posts.filter(post => post.type === 0).filter(post => post.deadline != null).sort((a, b) => (new Date(a.deadline) as unknown as number) - (new Date(b.deadline) as unknown as number))
         .concat(posts.filter(post => post.type === 0).filter(post => post.deadline == null))
         .concat(posts.filter(post => post.type > 0).filter(post => post.deadline != null).sort((a, b) => a.deadline === b.deadline ? a.type - b.type : (new Date(a.deadline) as unknown as number) - (new Date(b.deadline) as unknown as number)))
@@ -91,7 +90,7 @@ export async function POST(request: Request) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.postMissingFields[clientLang] }), { status: 400 });
     }
-    if (typeof data.title !== 'string' || (data.title_en != null && typeof data.title_en !== 'string') || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.content_en != null && typeof data.content_en !== 'string') || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date'))) {
+    if (typeof data.title !== 'string' || (data.title_en != null && typeof data.title_en !== 'string') || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.content_en != null && typeof data.content_en !== 'string') || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date')) || (data.deadline2 && (typeof data.deadline2 !== 'object' || !data.deadline2.subject || !data.deadline2.deadlines || typeof data.deadline2.subject !== 'string' || typeof data.deadline2.deadlines !== 'object'))) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.postMalformedFields[clientLang] }), { status: 400 });
     }
@@ -103,9 +102,12 @@ export async function POST(request: Request) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.importantType[clientLang] }), { status: 403 });
     }
+    if (data.deadline2 && data.deadline2.subject === '...') {
+        data.deadline2.subject = process.env.NEXT_PUBLIC_SUBJECTS?.split(',')[0];
+    }
     const postsCollection = db.collection('posts');
     const count = (await postsCollection.find().toArray()).map(x => x.count).reduce((a: number, b: number) => Math.max(a, b), 0) + 1;
-    await postsCollection.insertOne({ count, title: data.title, title_en: data.title_en, type: data.type, content: data.content, content_en: data.content_en, deadline: data.deadline ? new Date(data.deadline) : null, author: userData.id, created: new Date() });
+    await postsCollection.insertOne({ count, title: data.title, title_en: data.title_en, type: data.type, content: data.content, content_en: data.content_en, deadline: data.deadline ? new Date(data.deadline) : null, deadline2: data.deadline2 ? { subject: data.deadline2.subject, deadlines: data.deadline2.deadlines.map((x: any) => { return { time: x.time, deadline: new Date(x.deadline) } }) } : null, author: userData.id, created: new Date() });
     const userList = await usersCollection.find({ id: { $ne: userData.id } }).toArray();
     setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
     userList.forEach(user => {

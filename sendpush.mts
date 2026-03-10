@@ -17,10 +17,6 @@ const usersCollection = db.collection('users');
 // @ts-ignore
 const userList = await usersCollection.find().toArray();
 const postsCollection = db.collection('posts');
-// @ts-ignore
-const allPosts = await postsCollection.find().toArray();
-const twoDaysLeft = allPosts.filter(post => post.deadline && new Date(post.deadline) as unknown as number - Date.now() <= 2 * 24 * 60 * 60 * 1000 && new Date(post.deadline) as unknown as number - Date.now() > 24 * 60 * 60 * 1000);
-const oneDayLeft = allPosts.filter(post => post.deadline && new Date(post.deadline) as unknown as number - Date.now() <= 24 * 60 * 60 * 1000 && new Date(post.deadline) as unknown as number - Date.now() > 0);
 const examsCollection = db.collection('exams');
 // @ts-ignore
 const allExams = await examsCollection.find().toArray();
@@ -83,39 +79,49 @@ if (closestCsat) {
         });
     });
 }
-const data = twoDaysLeft.map(post => {
-    return {
-        title: `${postType[post.type]} ${deadlineName[post.type]} 2일 전`,
-        body: `${post.title} ${deadlineName[post.type]} 2일 전입니다.`,
-        tag: post.count.toString()
-    }
-}).concat(oneDayLeft.map(post => {
-    return {
-        title: `${postType[post.type]} ${deadlineName[post.type]} 1일 전`,
-        body: `${post.title} ${deadlineName[post.type]} 1일 전입니다.`,
-        tag: post.count.toString()
-    }
-}));
-const dataEn = twoDaysLeft.map(post => {
-    return {
-        title: `${postTypeEn[post.type]} ${deadlineNameEn[post.type]} in 2 Days`,
-        body: `${post.title_en === "" ? post.title : post.title_en} ${deadlineNameEn[post.type]} is in 2 days.`,
-        tag: post.count.toString(),
-        url: `/post/${post.count}`
-    }
-}).concat(oneDayLeft.map(post => {
-    return {
-        title: `${postTypeEn[post.type]} ${deadlineNameEn[post.type]} in 1 Day`,
-        body: `${post.title_en === "" ? post.title : post.title_en} ${deadlineNameEn[post.type]} is tomorrow.`,
-        tag: post.count.toString(),
-        url: `/post/${post.count}`
-    }
-}));
-if (data.length > 0) {
-    userList.forEach(user => {
+
+userList.forEach(user => {
+    // @ts-ignore
+    const allPosts = await postsCollection.find().toArray().map(post => {
+        return {
+            ...post,
+            deadline: post.deadline2 ? (post.deadline2.deadlines.find((x: any) => x.time === Object.keys(user.subjects).find(time => post.deadline2.subject === user.subjects[time])) ?? { deadline: null }).deadline : post.deadline
+        }
+    })
+    const twoDaysLeft = allPosts.filter((post: any) => post.deadline && new Date(post.deadline) as unknown as number - Date.now() <= 2 * 24 * 60 * 60 * 1000 && new Date(post.deadline) as unknown as number - Date.now() > 24 * 60 * 60 * 1000);
+    const oneDayLeft = allPosts.filter((post: any) => post.deadline && new Date(post.deadline) as unknown as number - Date.now() <= 24 * 60 * 60 * 1000 && new Date(post.deadline) as unknown as number - Date.now() > 0);
+    const data = twoDaysLeft.map((post: any) => {
+        return {
+            title: `${postType[post.type]} ${deadlineName[post.type]} 2일 전`,
+            body: `${post.title} ${deadlineName[post.type]} 2일 전입니다.`,
+            tag: post.count.toString()
+        }
+    }).concat(oneDayLeft.map((post: any) => {
+        return {
+            title: `${postType[post.type]} ${deadlineName[post.type]} 1일 전`,
+            body: `${post.title} ${deadlineName[post.type]} 1일 전입니다.`,
+            tag: post.count.toString()
+        }
+    }));
+    const dataEn = twoDaysLeft.map((post: any) => {
+        return {
+            title: `${postTypeEn[post.type]} ${deadlineNameEn[post.type]} in 2 Days`,
+            body: `${post.title_en === "" ? post.title : post.title_en} ${deadlineNameEn[post.type]} is in 2 days.`,
+            tag: post.count.toString(),
+            url: `/post/${post.count}`
+        }
+    }).concat(oneDayLeft.map((post: any) => {
+        return {
+            title: `${postTypeEn[post.type]} ${deadlineNameEn[post.type]} in 1 Day`,
+            body: `${post.title_en === "" ? post.title : post.title_en} ${deadlineNameEn[post.type]} is tomorrow.`,
+            tag: post.count.toString(),
+            url: `/post/${post.count}`
+        }
+    }));
+    if (data.length > 0) {
         user.subscriptions.forEach(async (sub: any) => {
             sendNotification(sub, JSON.stringify(user.lang === 1 ? dataEn : data)).catch(() => { })
         });
-    });
-}
+    }
+});
 client.close();

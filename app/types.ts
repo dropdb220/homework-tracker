@@ -97,3 +97,9 @@ export type Device = {
     browser: string;
     isMySession: boolean;
 }
+
+export type Time = {
+    fixed: boolean;
+    name: string;
+    time?: string;
+}

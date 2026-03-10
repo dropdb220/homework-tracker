@@ -76,7 +76,7 @@ export async function POST(request: Request) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.existingID[clientLang] }), { status: 400 });
     }
-    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], flag: 0, lang: clientLang, discordConnected: false });
+    await usersCollection.insertOne({ id, pwd: hash, salt, firstName: '', lastName: '', perm: 2, accepted: false, passkeys: [], subscriptions: [], allergy: [], flag: 0, lang: clientLang, discordConnected: false, subjects: {} });
     let token = '';
     for (let i = 0; i < 64; i++) {
         token += Math.floor(Math.random() * 16).toString(16);

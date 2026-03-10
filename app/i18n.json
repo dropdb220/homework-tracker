@@ -111,5 +111,12 @@
     "browser2": ["Firefox", "Firefox"],
     "browser3": ["Safari", "Safari"],
     "browser4": ["Edge", "Edge"],
-    "browser5": ["삼성 인터넷", "Samsung Internet"]
+    "browser5": ["삼성 인터넷", "Samsung Internet"],
+
+    "#comment14": "Day of Week",
+    "day0": ["월", "Mon"],
+    "day1": ["화", "Tue"],
+    "day2": ["수", "Wed"],
+    "day3": ["목", "Thu"],
+    "day4": ["금", "Fri"]
 }

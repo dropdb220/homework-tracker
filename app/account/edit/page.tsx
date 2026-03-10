@@ -193,6 +193,17 @@ export default function MyAccountEditpage() {
                     </Link>
                     <br />
                     <br />
+                    <label htmlFor="timetable" className="kor">시간표</label>
+                    <label htmlFor="timetable" className="eng">Timetable</label>
+                    <br />
+                    <Link href="/account/timetable">
+                        <button id="timetable" className="w-[40%] ml-0 mr-0 pt-3 pb-3 mt-4 rounded-lg bg-blue-500 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:hover:bg-gray-500 dark:disabled:hover:bg-gray-700 transition-all ease-in-out duration-200 focus:ring-3">
+                            <span className="kor">확인/수정</span>
+                            <span className="eng">View/Update</span>
+                        </button>
+                    </Link>
+                    <br />
+                    <br />
                     <label htmlFor="enc" className="kor">PDF 암호화</label>
                     <label htmlFor="enc" className="eng">PDF Encryption</label>
                     <br />

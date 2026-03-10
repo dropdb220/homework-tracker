@@ -42,7 +42,7 @@ export async function GET(request: Request, props: { params: Promise<{ idx: stri
     }
     const user = await usersCollection.findOne({ id: post.author });
     client.close();
-    return new Response(JSON.stringify({ ...post, title: userData.lang == 1 ? (post.title_en === "" ? post.title : post.title_en) : post.title, content: userData.lang == 1 ? (post.content_en === "" ? post.content : post.content_en) : post.content, title_ko: post.title, content_ko: post.content, author: { id: post.author, firstName: user?.firstName, lastName: user?.lastName } }), { status: 200 });
+    return new Response(JSON.stringify({ ...post, deadline: post.deadline2 ? (post.deadline2.deadlines.find((x: any) => x.time === Object.keys(userData.subjects).find(time => post.deadline2.subject === userData.subjects[time])) ?? { deadline: null }).deadline : post.deadline, title: userData.lang == 1 ? (post.title_en === "" ? post.title : post.title_en) : post.title, content: userData.lang == 1 ? (post.content_en === "" ? post.content : post.content_en) : post.content, title_ko: post.title, content_ko: post.content, author: { id: post.author, firstName: user?.firstName, lastName: user?.lastName } }), { status: 200 });
 }
 
 export async function PUT(request: Request, props: { params: Promise<{ idx: string }> }) {
@@ -87,7 +87,7 @@ export async function PUT(request: Request, props: { params: Promise<{ idx: stri
     if (!data.title || data.type == null || !data.content) {
         return new Response(JSON.stringify({ code: 1, msg: i18n.postMissingFields[clientLang] }), { status: 400 });
     }
-    if (typeof data.title !== 'string' || (data.title_en != null && typeof data.title_en !== 'string') || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.content_en != null && typeof data.content_en !== 'string') || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date'))) {
+    if (typeof data.title !== 'string' || (data.title_en != null && typeof data.title_en !== 'string') || typeof data.type !== 'number' || typeof data.content !== 'string' || (data.content_en != null && typeof data.content_en !== 'string') || (data.deadline && (typeof data.deadline !== 'string' || new Date(data.deadline).toString() === 'Invalid Date')) || (data.deadline2 && (typeof data.deadline2 !== 'object' || !data.deadline2.subject || !data.deadline2.deadlines || typeof data.deadline2.subject !== 'string' || typeof data.deadline2.deadlines !== 'object'))) {
         return new Response(JSON.stringify({ code: 1, msg: i18n.postMalformedFields[clientLang] }), { status: 400 });
     }
     if (data.type < 0 || data.type >= (postType as Array<string>).length - 1) {
@@ -98,7 +98,10 @@ export async function PUT(request: Request, props: { params: Promise<{ idx: stri
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.importantType[clientLang] }), { status: 403 });
     }
-    await postsCollection.updateOne({ count: parseInt(params.idx) }, { $set: { title: data.title, title_en: data.title_en, type: data.type, content: data.content, content_en: data.content_en, deadline: data.deadline ? new Date(data.deadline) : null, author: userData.id, created: new Date() } });
+    if (data.deadline2 && data.deadline2.subject === '...') {
+        data.deadline2.subject = process.env.NEXT_PUBLIC_SUBJECTS?.split(',')[0];
+    }
+    await postsCollection.updateOne({ count: parseInt(params.idx) }, { $set: { title: data.title, title_en: data.title_en, type: data.type, content: data.content, content_en: data.content_en, deadline: data.deadline ? new Date(data.deadline) : null, deadline2: data.deadline2 ? { subject: data.deadline2.subject, deadlines: data.deadline2.deadlines.map((x: any) => { return { time: x.time, deadline: new Date(x.deadline) } }) } : null, author: userData.id, created: new Date() } });
     const userList = await usersCollection.find({ id: { $ne: userData.id } }).toArray();
     setVapidDetails(`mailto:${process.env.VAPID_EMAIL!}`, process.env.NEXT_PUBLIC_VAPID_PUBKEY!, process.env.VAPID_PRIVKEY!);
     userList.forEach(user => {
