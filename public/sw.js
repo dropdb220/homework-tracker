@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cache-v106';
+const CACHE_NAME = 'cache-v107';
 const UPLOAD_PERMANENT_CACHE_NAME = 'upload-cache';
 
 self.addEventListener('install', event => {
@@ -16,7 +16,7 @@ self.addEventListener('activate', event => {
                             return cache.keys().then(keys => {
                                 return Promise.all(
                                     keys.map(request => {
-                                        if ((request.url.includes('/api/post') || request.url.includes('/api/question') || request.url.includes('/api/print')) && request.method === 'GET') {
+                                        if ((request.url.includes('/api/post') || request.url.includes('/api/question') || request.url.includes('/api/feedback') || request.url.includes('/api/print')) && request.method === 'GET') {
                                             return caches.open(CACHE_NAME).then(async newCache => {
                                                 return newCache.put(request, (await cache.match(request)).clone()).then(() => {
                                                     return cache.delete(request);
@@ -48,6 +48,8 @@ self.addEventListener('activate', event => {
                 '/write',
                 '/question',
                 '/question/write',
+                '/feedback',
+                '/feedback/write',
                 '/print',
                 '/print/write',
                 '/account',
@@ -94,7 +96,7 @@ self.addEventListener('fetch', event => {
             }) : (
                 (event.request.url.includes('/api')) ?
                     (
-                        ((event.request.url.includes('/api/post') || event.request.url.includes('/api/question') || event.request.url.includes('/api/print')) && event.request.method === 'GET') ? (
+                        ((event.request.url.includes('/api/post') || event.request.url.includes('/api/question') || event.request.url.includes('/api/feedback') || event.request.url.includes('/api/print')) && event.request.method === 'GET') ? (
                             fetch(event.request)
                                 .then(response => {
                                     if (!response.ok) return response;

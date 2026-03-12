@@ -139,6 +139,14 @@ export default function Header() {
                                             </button>
                                         </Link>
                                     }
+                                    {process.env.NEXT_PUBLIC_FEEDBACK_ENABLED == '1' &&
+                                        <Link href="/feedback">
+                                            <button className="p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => { setShowUtilMenu(false); }}>
+                                                <span className="kor">건의함</span>
+                                                <span className="eng">Feedback</span>
+                                            </button>
+                                        </Link>
+                                    }
                                     {process.env.NEXT_PUBLIC_PRINT_ENABLED == '1' &&
                                         <Link href="/print">
                                             <button className="p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => { setShowUtilMenu(false); }}>
@@ -220,6 +228,14 @@ export default function Header() {
                                             <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => { setShowMobileMenu(false); }}>
                                                 <span className="kor">질문 게시판</span>
                                                 <span className="eng">Q&A</span>
+                                            </button>
+                                        </Link>
+                                    }
+                                    {process.env.NEXT_PUBLIC_FEEDBACK_ENABLED == '1' && account && account.token && isValidToken &&
+                                        <Link href="/feedback">
+                                            <button className="w-full text-left p-2 rounded-lg bg-white dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 transition-all ease-in-out duration-200 focus:ring-3" onClick={() => { setShowMobileMenu(false); }}>
+                                                <span className="kor">건의함</span>
+                                                <span className="eng">Feedback</span>
                                             </button>
                                         </Link>
                                     }

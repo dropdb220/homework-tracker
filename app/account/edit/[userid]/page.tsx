@@ -260,7 +260,7 @@ const OtherAccountEditpage: React.FC<{ params: Promise<{ userid: string }> }> = 
                     <p className="text-sm kor">추가 권한</p>
                     <p className="text-sm eng">Additional Permissions</p>
                     {
-                        [1, 2].map((currentFlag) => (
+                        [1, 2, 4].map((currentFlag) => (
                             <div key={currentFlag}>
                                 <input type="checkbox" id={`flag${currentFlag}`} checked={(flag & currentFlag) !== 0} disabled={myPerm !== 0} className="mr-2 h-5 mt-1 mb-1" onChange={e => {
                                     if (e.currentTarget.checked) setFlag(currentFlag | flag);

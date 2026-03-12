@@ -34,14 +34,14 @@ export async function POST(request: Request, props: { params: Promise<{ idx: str
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.notApproved[clientLang] }), { status: 403 });
     }
-    const questionsCollection = db.collection('questions');
+    const questionsCollection = db.collection('feedbacks');
     const question = await questionsCollection.findOne({ idx: Number(params.idx) });
-    if (!question || (!(userData.flag & AccountFlag.answerer) && !question.public && question.user !== userData.id)) {
+    if (!question || (!(userData.flag & AccountFlag.feedback) && !question.public && question.user !== userData.id)) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentPost[clientLang] }), { status: 404 });
     }
     const data = await request.json();
-    if (!(userData.flag & AccountFlag.answerer) && userData.perm >= 1) {
+    if (!(userData.flag & AccountFlag.feedback) && userData.perm >= 1) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.notAnswerer[clientLang] }), { status: 403 });
     }
@@ -51,10 +51,10 @@ export async function POST(request: Request, props: { params: Promise<{ idx: str
     const user = await usersCollection.findOne({ id: question.user });
     if (user) user.subscriptions.forEach(async (sub: any) => {
         sendNotification(sub, JSON.stringify([{
-            title: user.lang == 1 ? 'Question answered' : '답변 등록됨',
-            body: user.lang == 1 ? `Your question ${question.title_en === "" ? question.title : question.title_en} was answered just now.` : `${question.title}에 답변이 등록되었습니다.`,
+            title: user.lang == 1 ? 'Feedback answered' : '건의 답변 등록됨',
+            body: user.lang == 1 ? `Your feedback ${question.title_en === "" ? question.title : question.title_en} was answered just now.` : `${question.title}에 답변이 등록되었습니다.`,
             tag: question.idx.toString(),
-            url: `/question/${question.idx}`
+            url: `/feedback/${question.idx}`
         }])).catch(() => { });
     });
     return new Response(JSON.stringify({ code: 0 }), { status: 200 });
@@ -89,14 +89,14 @@ export async function PUT(request: Request, props: { params: Promise<{ idx: stri
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.notApproved[clientLang] }), { status: 403 });
     }
-    const questionsCollection = db.collection('questions');
+    const questionsCollection = db.collection('feedbacks');
     const question = await questionsCollection.findOne({ idx: Number(params.idx) });
-    if (!question || ((userData.flag & AccountFlag.answerer) && !question.public && question.user !== userData.id)) {
+    if (!question || ((userData.flag & AccountFlag.feedback) && !question.public && question.user !== userData.id)) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentPost[clientLang] }), { status: 404 });
     }
     const data = await request.json();
-    if (!(userData.flag & AccountFlag.answerer) && userData.perm >= 1) {
+    if (!(userData.flag & AccountFlag.feedback) && userData.perm >= 1) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.notAnswererEdit[clientLang] }), { status: 403 });
     }
@@ -107,9 +107,9 @@ export async function PUT(request: Request, props: { params: Promise<{ idx: stri
     if (user) user.subscriptions.forEach(async (sub: any) => {
         sendNotification(sub, JSON.stringify([{
             title: user.lang == 1 ? 'Answer Edited' : '답변 수정됨',
-            body: user.lang == 1 ? `The answer to your question ${question.title_en === "" ? question.title : question.title_en} was edited just now.` : `${question.title}에 대한 답변이 수정되었습니다.`,
+            body: user.lang == 1 ? `The answer to your feedback ${question.title_en === "" ? question.title : question.title_en} was edited just now.` : `${question.title}에 대한 답변이 수정되었습니다.`,
             tag: question.idx.toString(),
-            url: `/question/${question.idx}`
+            url: `/feedback/${question.idx}`
         }])).catch(() => { });
     });
     return new Response(JSON.stringify({ code: 0 }), { status: 200 });
@@ -144,13 +144,13 @@ export async function DELETE(request: Request, props: { params: Promise<{ idx: s
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.notApproved[clientLang] }), { status: 403 });
     }
-    const questionsCollection = db.collection('questions');
+    const questionsCollection = db.collection('feedbacks');
     const question = await questionsCollection.findOne({ idx: Number(params.idx) });
-    if (!question || (!(userData.flag & AccountFlag.answerer) && !question.public && question.user !== userData.id)) {
+    if (!question || (!(userData.flag & AccountFlag.feedback) && !question.public && question.user !== userData.id)) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.nonExistentPost[clientLang] }), { status: 404 });
     }
-    if (userData.perm >= 1 && !(userData.flag & AccountFlag.answerer)) {
+    if (userData.perm >= 1 && !(userData.flag & AccountFlag.feedback)) {
         client.close();
         return new Response(JSON.stringify({ code: 1, msg: i18n.notAnswererDelete[clientLang] }), { status: 403 });
     }

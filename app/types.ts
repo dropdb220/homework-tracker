@@ -42,7 +42,8 @@ export type AccountInfo = {
 
 export enum AccountFlag {
     answerer = 1,
-    printer = 2
+    printer = 2,
+    feedback = 4
 }
 
 export const permToString = ['root', 'admin', 'user', ''];

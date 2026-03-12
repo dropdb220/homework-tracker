@@ -112,12 +112,12 @@ export default function MyAccountInfoPage() {
                 <p className="text-sm eng">Additional Permissions</p>
                 <p className="text-xl kor">
                     {
-                        accountInfo?.flag === 0 ? '없음' : [1, 2].map((flag) => ((accountInfo?.flag ?? 0) & flag) != 0 ? i18n[`flag${flag}`][0] : '').filter(x => x !== '').join('\n')
+                        accountInfo?.flag === 0 ? '없음' : [1, 2, 4].map((flag) => ((accountInfo?.flag ?? 0) & flag) != 0 ? i18n[`flag${flag}`][0] : '').filter(x => x !== '').join('\n')
                     }
                 </p>
                 <p className="text-xl eng">
                     {
-                        accountInfo?.flag === 0 ? 'None' : [1, 2].map((flag) => ((accountInfo?.flag ?? 0) & flag) != 0 ? i18n[`flag${flag}`][1] : '').filter(x => x !== '').join('\n')
+                        accountInfo?.flag === 0 ? 'None' : [1, 2, 4].map((flag) => ((accountInfo?.flag ?? 0) & flag) != 0 ? i18n[`flag${flag}`][1] : '').filter(x => x !== '').join('\n')
                     }
                 </p>
                 <br />
