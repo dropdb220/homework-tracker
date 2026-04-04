@@ -80,9 +80,9 @@ if (closestCsat) {
     });
 }
 
-userList.forEach(user => {
+userList.forEach(async user => {
     // @ts-ignore
-    const allPosts = await postsCollection.find().toArray().map(post => {
+    const allPosts = (await postsCollection.find().toArray()).map(post => {
         return {
             ...post,
             deadline: post.deadline2 ? (post.deadline2.deadlines.find((x: any) => x.time === Object.keys(user.subjects).find(time => post.deadline2.subject === user.subjects[time])) ?? { deadline: null }).deadline : post.deadline
@@ -124,4 +124,3 @@ userList.forEach(user => {
         });
     }
 });
-client.close();
