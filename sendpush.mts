@@ -39,7 +39,7 @@ if (closestExam) {
         };
         const dataEn = {
             title: `Exam Subject Notification`,
-            body: `${new Date(tomorrow.date).toLocaleDateString('en_US', {
+            body: `${new Date(tomorrow.date).toLocaleDateString('en-US', {
                 weekday: "short",
                 year: "numeric",
                 month: "short",
